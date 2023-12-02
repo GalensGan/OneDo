@@ -6,6 +6,9 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
+// 调试代码
+//args ="conf user".split(" ");
+//args = "ftp put -n test".Split(" ");
 
 // 获取程序执行目录
 var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

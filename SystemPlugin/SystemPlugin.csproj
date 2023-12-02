@@ -6,6 +6,7 @@
     <BaseOutputPath></BaseOutputPath>
     <Version>1.0.0.0</Version>
     <Authors>galens</Authors>
+    <PackageId>OneDo.$(AssemblyName)</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

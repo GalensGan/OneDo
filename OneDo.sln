@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneDo", "OneDo\OneDo.csproj", "{6A198797-0CF3-4A84-8DA9-F48112A2552A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneDo", "OneDo\OneDo.csproj", "{6A198797-0CF3-4A84-8DA9-F48112A2552A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{8C805029-A198-49E5-9CBD-494BEF663312}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemPlugin", "SystemPlugin\SystemPlugin.csproj", "{DFA1AA92-F183-47D2-AB14-B258DCE22E5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemPlugin", "SystemPlugin\SystemPlugin.csproj", "{DFA1AA92-F183-47D2-AB14-B258DCE22E5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FTPPlugin", "FTPPlugin\FTPPlugin.csproj", "{EF1CE7FC-0C0F-43E2-A479-F981990B1842}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,12 +25,17 @@ Global
 		{DFA1AA92-F183-47D2-AB14-B258DCE22E5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFA1AA92-F183-47D2-AB14-B258DCE22E5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFA1AA92-F183-47D2-AB14-B258DCE22E5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF1CE7FC-0C0F-43E2-A479-F981990B1842}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF1CE7FC-0C0F-43E2-A479-F981990B1842}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF1CE7FC-0C0F-43E2-A479-F981990B1842}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF1CE7FC-0C0F-43E2-A479-F981990B1842}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DFA1AA92-F183-47D2-AB14-B258DCE22E5B} = {8C805029-A198-49E5-9CBD-494BEF663312}
+		{EF1CE7FC-0C0F-43E2-A479-F981990B1842} = {8C805029-A198-49E5-9CBD-494BEF663312}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B3DF2C37-2F02-44EA-99A9-62E1DD0DA949}

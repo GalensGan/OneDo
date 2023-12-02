@@ -102,7 +102,8 @@ namespace OneDo.SystemPlugin
                 AnsiConsole.MarkupLine("Installed plugins:");
                 AnsiConsole.WriteLine();
 
-                var pluginNames = GetPluginFiles().ConvertAll(x => Path.GetFileNameWithoutExtension(x));
+                var allPluginFiles = GetPluginFiles();
+                var pluginNames = allPluginFiles.ConvertAll(x => Path.GetFileNameWithoutExtension(x));
 
                 // 获取禁用的插件列表
                 var disabledPluginsNode = config["disabledPlugins"];
@@ -117,27 +118,36 @@ namespace OneDo.SystemPlugin
                 grid.AddColumn();
                 grid.AddColumn();
                 grid.AddColumn();
+                grid.AddColumn();
                 // Add header row 
                 grid.AddRow(new Text[]{
                     new Text("名称", new Style(Color.SpringGreen1)).LeftJustified(),
                     new Text("版本", new Style(Color.SpringGreen1)).LeftJustified(),
-                    new Text("作者", new Style(Color.SpringGreen1)).LeftJustified()
+                    new Text("作者", new Style(Color.SpringGreen1)).LeftJustified(),
+                    new Text("状态", new Style(Color.SpringGreen1)).LeftJustified(),
                 });
                 grid.AddRow(new Text[]{
+                    new Text("----", new Style(Color.SpringGreen1)).LeftJustified(),
                     new Text("----", new Style(Color.SpringGreen1)).LeftJustified(),
                     new Text("----", new Style(Color.SpringGreen1)).LeftJustified(),
                     new Text("----", new Style(Color.SpringGreen1)).LeftJustified()
                 });
 
+                // 将名称升序排列
+                allPluginFiles.Sort();
+
                 // 获取程序所有的程序集
-                var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(x => pluginNames.Contains(x.GetName().Name));
+                var assemblies = allPluginFiles.ConvertAll(x =>
+                {
+                    // 从单个文件加载程序集
+                    return Assembly.LoadFile(x);                   
+                });
                 foreach (var assembly in assemblies)
                 {
                     // 获取程序的版本与作者信息
                     var assemblyNameInfo = assembly.GetName();                  
                     var author = assembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company;
-                    grid.AddRow(assemblyNameInfo.Name, assemblyNameInfo.Version.ToString(), author);
+                    grid.AddRow(assemblyNameInfo.Name, assemblyNameInfo.Version.ToString(), author,pluginNames.Contains(assemblyNameInfo.Name)?"启用":"禁用");
                 }
 
                 AnsiConsole.Write(grid);
@@ -146,6 +156,15 @@ namespace OneDo.SystemPlugin
             #endregion
 
             return true;
+        }
+
+        /// <summary>
+        /// 获取用户配置文件路径
+        /// </summary>
+        /// <returns></returns>
+        internal static string GetUserConfigPath()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OneDo", "config.json");
         }
 
         private string GetPluginFullName(string pluginName)
@@ -162,7 +181,7 @@ namespace OneDo.SystemPlugin
                 WriteIndented = true
             });
             // 重新保存到文件中
-            var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OneDo", "config.json");
+            var configPath = GetUserConfigPath();
             using var fs = File.Create(configPath);
             using var sw = new StreamWriter(fs);
             sw.Write(jsonString);
