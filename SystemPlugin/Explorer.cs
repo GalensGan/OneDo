@@ -48,7 +48,17 @@ namespace OneDo.SystemPlugin
                 }
 
                 // 打开
-                Process.Start("explorer.exe", path);
+                Process process = new()
+                {
+                    StartInfo = new ProcessStartInfo()
+                    {
+                        FileName = "explorer.exe",
+                        Arguments = path,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                    }
+                };
+                process.Start();
             }, pathOption);
 
             return true;

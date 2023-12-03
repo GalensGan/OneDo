@@ -9,6 +9,10 @@ using System.Text.Json.Nodes;
 // 调试代码
 //args ="conf user".split(" ");
 //args = "ftp put -n test".Split(" ");
+//args = "ftp list".Split(" ");
+//args = "plugin enable -n FTP".Split(" ");
+//args = "shell -n gitlog".Split(" ");
+//args = "minio pdf -p C:\\Users\\galens\\Downloads\\DgnEC_CRUD.pdf".Split(' ');
 
 // 获取程序执行目录
 var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -22,7 +26,8 @@ if (!Directory.Exists(pluginPath))
 }
 
 // 读取 Plugin 目录下的插件 DLL,以 Plugin.dll 结尾
-var dllNames = Directory.GetFiles(pluginPath, "*Plugin.dll", SearchOption.AllDirectories).Select(x => Path.GetFileNameWithoutExtension(x));
+var allPluginDllFullNames = Directory.GetFiles(pluginPath, "*Plugin.dll", SearchOption.AllDirectories);
+var dllNames = allPluginDllFullNames.Select(x => Path.GetFileNameWithoutExtension(x));
 
 // 读取用户配置文件 json 格式
 var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OneDo", "config.json");
@@ -50,10 +55,26 @@ if (config["disabledPlugins"] !=null)
 }
 
 var rootCommand = new RootCommand("欢迎使用 OneDo，它将帮助您将复杂的操作简化成一条命令，提升效率");
+
+List<string> allDllNames = null;
+AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
+{
+    if(allDllNames == null)
+    {
+        allDllNames = Directory.GetFiles(currentDirectory, "*.dll",SearchOption.AllDirectories).ToList();
+    }
+
+    var dllName = args.Name.Split(',')[0];
+    var dllFullName = allDllNames.Where(x => x.EndsWith(dllName + ".dll")).FirstOrDefault();
+    return dllFullName == null ? null : Assembly.LoadFile(dllFullName);
+}
+
 // 加载插件
 foreach (var dllName in dllNames)
 {
-    var dll = Assembly.LoadFrom(Path.Combine(pluginPath, $"{dllName}.dll"));
+    var dllFullPath = allPluginDllFullNames.Where(x=>x.EndsWith(dllName+".dll")).FirstOrDefault();
+    var dll = Assembly.LoadFrom(dllFullPath);
     var pluginTypes = dll.GetTypes().Where(x => typeof(IPlugin).IsAssignableFrom(x));
 
     foreach (var pluginType in pluginTypes)

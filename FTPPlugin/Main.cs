@@ -9,16 +9,16 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using OneDo.Utils;
 
 namespace OneDo.FTPPlugin
 {
-    public class FTP : IPlugin
+    public class Main : IPlugin
     {
         public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
         {
             var ftpCommand = new Command("ftp", "FTP文件传输");
             rootCommand.Add(ftpCommand);
-
             var ftpOption = new Option<string>("--name", "需要执行上传的ftp名称");
             ftpOption.AddAlias("-n");
             ftpOption.IsRequired = true;
@@ -43,7 +43,10 @@ namespace OneDo.FTPPlugin
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 };
-                var ftpArgs = JsonSerializer.Deserialize<List<FTPPutOptions>>(array.ToJsonString(), options);
+                if(!JsonHelper.GetJsonArray<FTPModel>(config, "ftps", out var ftpArgs))
+                {                    
+                    return;
+                }
                 var ftpRuns = ftpArgs.FindAll(x => x.Name.ToLower() == name.ToLower());
                 // 验证参数
                 for (var index = 0; index < ftpRuns.Count; index++)
@@ -100,6 +103,22 @@ namespace OneDo.FTPPlugin
                 AnsiConsole.MarkupLine($"[springgreen1]上传成功! 共计 {timespan.Seconds} 秒[/]");
             }, ftpOption);
 
+            // 展示可用的 ftp 配置
+            var listCommand = new Command("list", "展示可用的 ftp 配置");
+            listCommand.AddAlias("ls");
+            ftpCommand.Add(listCommand);
+            listCommand.SetHandler(() =>
+            {
+                var list = new ListPluginConfs(config, "ftps", new Dictionary<string, string>()
+                {
+                    { "name","名称"},
+                    { "host","主机"},
+                    { "method","方法"},
+                    { "description","描述"}
+                });
+                list.Show();
+            });
+
             return true;
         }
 
@@ -110,7 +129,7 @@ namespace OneDo.FTPPlugin
         /// <param name="totalProgress"></param>
         /// <param name="index"></param>
         /// <param name="ftpPutOptions"></param>
-        private void FtpUpload(ProgressContext ctx, ProgressTask totalProgress, int index, FTPPutOptions ftpPutOptions)
+        private void FtpUpload(ProgressContext ctx, ProgressTask totalProgress, int index, FTPModel ftpPutOptions)
         {
             // 创建进度条
             var description = $"{index + 1}.{ftpPutOptions.Name}: 开始上传...";

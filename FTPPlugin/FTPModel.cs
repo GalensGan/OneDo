@@ -9,12 +9,17 @@ namespace FTPPlugin
     /// <summary>
     /// 上传选项
     /// </summary>
-    internal class FTPPutOptions
+    internal class FTPModel
     {
         /// <summary>
         /// 名称，必须要有值
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// 描述
+        /// </summary>
+        public string Description { get; set; }
 
         /// <summary>
         /// 地址

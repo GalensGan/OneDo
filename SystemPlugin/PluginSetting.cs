@@ -17,9 +17,8 @@ namespace OneDo.SystemPlugin
 
             #region 启用插件
             var enableCommand = new Command("enable", "启用插件");
-            var pluginNameOption = new Option<string>("--name", "插件名称") { IsRequired = true };
-            pluginNameOption.AddAlias("-n");
-            enableCommand.Add(pluginNameOption);
+            var pluginNameArgs = new Argument<string>("pluginName", "插件名称");
+            enableCommand.Add(pluginNameArgs);
             enableCommand.SetHandler(pluginName =>
             {
                 // 插件名称不区分大小写
@@ -38,23 +37,28 @@ namespace OneDo.SystemPlugin
                 if (disabledPluginsNode != null)
                 {
                     // 找到了之后，移除指定名称
-                    disabledPluginsNode.AsArray().Remove(pluginName);
-
+                    var disabledPlugins = disabledPluginsNode.AsArray();
+                    var usefullNodes = disabledPlugins.Select(x => x.GetValue<string>() == pluginName);
+                    disabledPlugins.Clear();
+                    foreach(var node in usefullNodes)disabledPlugins.Add(node);
+                    
                     // 重新保存到文件中
                     OverrideConfigFile(config);
 
-                    AnsiConsole.MarkupLine($"[springgreen1]插件: {pluginName} 启用成功[/]");
+                    AnsiConsole.MarkupLine($"[springgreen1]插件 {pluginName} 启用成功！[/]");
+                    return;
                 }
 
-                AnsiConsole.MarkupLine($"[yellow]插件: {pluginName} 已启用[/]");
-            }, pluginNameOption);
+                AnsiConsole.MarkupLine($"[yellow]插件 {pluginName} 已启用[/]");
+            }, pluginNameArgs);
             settingCommand.Add(enableCommand);
             #endregion
 
             #region 禁用插件
-            var disableCommand = new Command("disable", "禁用插件");
-            disableCommand.AddAlias("d");
-            disableCommand.Add(pluginNameOption);
+            var disableCommand = new Command("disable", "禁用插件")
+            {
+                pluginNameArgs
+            };
             settingCommand.Add(disableCommand);
             disableCommand.SetHandler(pluginName =>
             {
@@ -84,13 +88,17 @@ namespace OneDo.SystemPlugin
                 }
 
                 var arrayNodes = disabledPluginsNode.AsArray();
-                arrayNodes.Remove(pluginName);
+                var usefullNodes = arrayNodes.Select(x => x.GetValue<string>() != pluginName);
+                arrayNodes.Clear();
+                foreach (var node in usefullNodes) arrayNodes.Add(node);
+
                 arrayNodes.Add(pluginName);
 
                 // 重新保存到文件中
                 OverrideConfigFile(config);
+                AnsiConsole.MarkupLine($"[springgreen1]插件 {pluginName} 禁用成功！[/]");
 
-            }, pluginNameOption);
+            }, pluginNameArgs);
             #endregion
 
             #region 查看已经安装的插件
@@ -169,7 +177,7 @@ namespace OneDo.SystemPlugin
 
         private string GetPluginFullName(string pluginName)
         {
-            if (pluginName.EndsWith("plugin")) pluginName += "plugin";
+            if (!pluginName.EndsWith("Plugin")) pluginName += "Plugin";
             return pluginName;
         }
 
