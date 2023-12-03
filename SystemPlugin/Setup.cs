@@ -23,7 +23,7 @@ namespace OneDo.SystemPlugin
             // 安装
             var installCommand = new Command("install", "安装OneDo,将该程序添加到用户Path变量中");
             rootCommand.Add(installCommand);
-            rootCommand.SetHandler(() =>
+            installCommand.SetHandler(() =>
             {
                 // 给用户 path 变量中加上当前目录
                 string userPath = Environment.GetEnvironmentVariable("path", EnvironmentVariableTarget.User);
@@ -32,42 +32,65 @@ namespace OneDo.SystemPlugin
 
                 if (userPath.Contains(baseDir))
                 {
-                    AnsiConsole.WriteLine("[yellow]已经安装![/]");
+                    AnsiConsole.MarkupLine("[yellow]已经安装![/]");
                 }
                 else
                 {
-                    userPath += $";{baseDir}";
-                    Environment.SetEnvironmentVariable("path", userPath, EnvironmentVariableTarget.User);
-                    AnsiConsole.WriteLine("[springgreen1]安装成功[/]");
+                    AnsiConsole.Status()
+                     .Spinner(Spinner.Known.Dots5)
+                     .AutoRefresh(true)
+                     .Start("开始更新环境变量...", ctx =>
+                     {
+                         userPath += $";{baseDir}";
+                         Environment.SetEnvironmentVariable("path", userPath, EnvironmentVariableTarget.User);
+                     });
+                    AnsiConsole.MarkupLine("[springgreen1]安装成功[/]");
                 }
-                AnsiConsole.WriteLine($"运行下列语句卸载: oneDo uninstall");
+                AnsiConsole.MarkupLine($"运行下列语句卸载: oneDo uninstall");
             });
 
             // 卸载
             var uninstallCommand = new Command("uninstall", "卸载OneDo,移除环境变量，删除配置文件");
             rootCommand.Add(uninstallCommand);
-            rootCommand.SetHandler(() =>
+            uninstallCommand.SetHandler(() =>
             {
                 // 删除用户 path 中添加的变量
                 string userPath = Environment.GetEnvironmentVariable("path", EnvironmentVariableTarget.User);
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
                 if (userPath.Contains(baseDir))
                 {
-                    AnsiConsole.WriteLine("正在清除环境变量...");
+                    AnsiConsole.MarkupLine("正在清除环境变量...");
 
-                    userPath = userPath.Replace(";" + baseDir, "");
-                    Environment.SetEnvironmentVariable("path", userPath, EnvironmentVariableTarget.User);
-                    AnsiConsole.WriteLine("[springgreen1]环境变量清除成功![/]");
+                    AnsiConsole.Status()
+                     .Spinner(Spinner.Known.Dots5)
+                     .AutoRefresh(true)
+                    .Start("正在清除环境变量...", ctx =>
+                    {
+                        userPath = userPath.Replace(";" + baseDir, "");
+                        Environment.SetEnvironmentVariable("path", userPath, EnvironmentVariableTarget.User);
+                    });
+
+                    AnsiConsole.MarkupLine("[springgreen1]环境变量清除成功![/]");
                 }
 
                 // 删除配置文件
-                var configPath = PluginSetting.GetUserConfigPath();
-                var configDir = Path.GetDirectoryName(configPath);
-                if (Directory.Exists(configDir)) Directory.Delete(configDir, true);
+                // 询问是否删除配置文件
+                var askResult = AnsiConsole.Ask<string>("是否删除个人配置 ([green]Yes/No[/])","No");
+                if (!string.IsNullOrEmpty(askResult) && askResult.ToLower().Contains("y"))
+                {
+                    var configPath = PluginSetting.GetUserConfigPath();
+                    var configDir = Path.GetDirectoryName(configPath);
+                    if (Directory.Exists(configDir)) Directory.Delete(configDir, true);
+                    AnsiConsole.MarkupLine("[springgreen1]个人配置已清除[/]");
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine("[yellow]保留个人配置[/]");
+                }
 
                 // 判断当前命令行位置
-                AnsiConsole.WriteLine("[springgreen1]卸载成功！运行下列语句彻底删除：[/]");
-                AnsiConsole.WriteLine($"cd .. & rmdir /s/q \"{baseDir.Trim('\\')}\"[/]");
+                AnsiConsole.MarkupLine("[springgreen1]卸载成功！运行下列语句彻底删除：[/]");
+                AnsiConsole.WriteLine($"cd .. & rmdir /s/q \"{baseDir.Trim('\\')}\"");
             });
 
             // 打开配置
