@@ -13,6 +13,7 @@ using System.Text.Json.Nodes;
 //args = "plugin enable -n FTP".Split(" ");
 //args = "shell -n gitlog".Split(" ");
 //args = "minio pdf -p C:\\Users\\galens\\Downloads\\DgnEC_CRUD.pdf".Split(' ');
+//args = "minio img --clipboard-image".Split(" ");
 
 // 获取程序执行目录
 var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

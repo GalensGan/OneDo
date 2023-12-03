@@ -19,9 +19,7 @@ namespace OneDo.FTPPlugin
         {
             var ftpCommand = new Command("ftp", "FTP文件传输");
             rootCommand.Add(ftpCommand);
-            var ftpOption = new Option<string>("--name", "需要执行上传的ftp名称");
-            ftpOption.AddAlias("-n");
-            ftpOption.IsRequired = true;
+            var ftpOption = new Argument<string>("ftp-name", "需要执行上传的ftp名称");
             ftpCommand.Add(ftpOption);
             ftpCommand.SetHandler(name =>
             {
@@ -43,11 +41,17 @@ namespace OneDo.FTPPlugin
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 };
-                if(!JsonHelper.GetJsonArray<FTPModel>(config, "ftps", out var ftpArgs))
-                {                    
+                if (!JsonHelper.GetJsonArray<FTPModel>(config, "ftps", out var ftpArgs))
+                {
                     return;
                 }
                 var ftpRuns = ftpArgs.FindAll(x => x.Name.ToLower() == name.ToLower());
+                if (ftpRuns.Count == 0)
+                {
+                    AnsiConsole.MarkupLine($"[red]未找到名称为 {name} 的 ftp 配置[/]");
+                    return;
+                }
+
                 // 验证参数
                 for (var index = 0; index < ftpRuns.Count; index++)
                 {
@@ -86,21 +90,20 @@ namespace OneDo.FTPPlugin
                         MaxValue = ftpRuns.Count * 100
                     });
 
-
                     // 添加单个进度
                     for (var index = 0; index < ftpRuns.Count; index++)
                     {
                         var ftpRun = ftpRuns[index];
                         if (ftpRun.Method.ToLower() == "put")
                         {
-                            FtpUpload(ctx, totalProgressTask, index, ftpRuns[index]);
+                            FtpUpload(ctx, totalProgressTask, index, ftpRuns[index], startDate);
                         }
                     }
                 });
 
                 // 计算花费的时间，单位秒
                 var timespan = DateTime.Now - startDate;
-                AnsiConsole.MarkupLine($"[springgreen1]上传成功! 共计 {timespan.Seconds} 秒[/]");
+                AnsiConsole.MarkupLine($"[springgreen1]上传成功! 耗时 {timespan.Seconds} 秒[/]");
             }, ftpOption);
 
             // 展示可用的 ftp 配置
@@ -129,7 +132,7 @@ namespace OneDo.FTPPlugin
         /// <param name="totalProgress"></param>
         /// <param name="index"></param>
         /// <param name="ftpPutOptions"></param>
-        private void FtpUpload(ProgressContext ctx, ProgressTask totalProgress, int index, FTPModel ftpPutOptions)
+        private void FtpUpload(ProgressContext ctx, ProgressTask totalProgress, int index, FTPModel ftpPutOptions, DateTime totalStart)
         {
             // 创建进度条
             var description = $"{index + 1}.{ftpPutOptions.Name}: 开始上传...";
@@ -155,11 +158,11 @@ namespace OneDo.FTPPlugin
                 subProgress.Value(progress.Progress);
                 subProgress.Description($"{Path.GetFileName(progress.LocalPath)} : ");
 
-                // 计算总进度
+                // 更新总进度
                 double accumulatePercent = progress.FileIndex * 1.0 / (progress.FileCount);
                 double currentPercent = accumulatePercent + progress.Progress / 100 / progress.FileCount;
-
                 totalProgress.Value((index + currentPercent) * 100);
+                totalProgress.Description($"总进度 [blue]{(DateTime.Now - totalStart).ToString(@"hh\:mm\:ss")}[/] :");
             };
 
             // 判断是否是文件

@@ -114,6 +114,12 @@ namespace OneDo.MinioPlugin
                    uploadResultUrls.AddRange(uploadResults);
                });
 
+                if (uploadResultUrls.Count == 0)
+                {
+                    AnsiConsole.MarkupLine("[red]上传失败[/]");
+                    return;
+                }
+
                 // 输出上传结果
                 AnsiConsole.MarkupLine($"[springgreen1]上传成功! 共 {uploadResultUrls.Count} 项[/]");
                 uploadResultUrls.ForEach(x => AnsiConsole.MarkupLine($"[green]{x}[/]"));
@@ -151,12 +157,12 @@ namespace OneDo.MinioPlugin
             if (clipboard && System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // 剪切板中的文件保存到临时目录中
-                var subTempPath = $"OneDo\\MinioPlugin\\{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}.png";
+                var subTempPath = $"OneDo\\MinioPlugin\\screenshot_{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}.png";
                 // 调用脚本保存图片到临时目录
-                var shellFileName = Path.Combine(
-                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().FullName),
-                    "saveImageFromClipboard.ps1");
-                Process.Start(shellFileName);
+                var currentDir = Assembly.GetExecutingAssembly().Location;
+                var shellFileName = Directory.GetFiles(Path.GetDirectoryName(currentDir), "saveImageFromClipboard.ps1", SearchOption.AllDirectories).FirstOrDefault();
+
+                Process.Start("powershell.exe", $"{shellFileName} {subTempPath}").WaitForExit();
 
                 var imageFullPath = Path.Combine(Path.GetTempPath(), subTempPath);
                 if (File.Exists(imageFullPath))
