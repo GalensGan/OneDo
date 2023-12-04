@@ -46,7 +46,16 @@ if (!File.Exists(configPath))
 var sr = new StreamReader(configPath);
 var configString = sr.ReadToEnd();
 sr.Close();
-var config = JsonNode.Parse(configString);
+JsonNode config = null;
+try
+{
+    config = JsonNode.Parse(configString);
+}
+catch (Exception)
+{
+    AnsiConsole.MarkupLine($"[red]个人配置格式错误, 请查看文件是否满足 json 格式要求: [/][green]{configPath}[/]");
+    return;
+}
 
 // 获取禁用的插件（默认都加载）
 if (config["disabledPlugins"] !=null)

@@ -84,7 +84,7 @@ namespace OneDo.FTPPlugin
                 })
                 .Start(ctx =>
                 {
-                    ProgressTask totalProgressTask = ctx.AddTask($"[yellow]总进度: [/]", new ProgressTaskSettings()
+                    ProgressTask totalProgressTask = ctx.AddTask($"[yellow]总进度:[/] [blue]00:00:00[/]", new ProgressTaskSettings()
                     {
                         AutoStart = true,
                         MaxValue = ftpRuns.Count * 100
