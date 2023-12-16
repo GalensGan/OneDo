@@ -2,35 +2,37 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace OneDo.ShellPlugin
+namespace OneDo.WakeOnLanPlugin
 {
-    internal class ShellModel
+    /// <summary>
+    /// 局域网唤醒数据类
+    /// </summary>
+    internal class WolModel
     {
         /// <summary>
         /// 名称
         /// </summary>
         public string Name { get; set; }
-
         /// <summary>
         /// 描述
         /// </summary>
         public string Description { get; set; }
-
         /// <summary>
-        /// 文件名
+        /// IP地址
         /// </summary>
-        public string FileName { get; set;}
-
+        [JsonPropertyName("ip")]
+        public string IP { get; set; }
         /// <summary>
-        /// 参数
+        /// MAC 地址
         /// </summary>
-        public string Arguments { get; set; }
-
+        [JsonPropertyName("mac")]
+        public string MAC { get; set; }
         /// <summary>
-        /// 工作目录
+        /// 端口号
         /// </summary>
-        public string WorkingDirectory { get; set; }
+        public int Port { get; set; } = 9;
     }
 }

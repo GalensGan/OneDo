@@ -14,6 +14,7 @@ using System.Text.Json.Nodes;
 //args = "shell -n gitlog".Split(" ");
 //args = "minio pdf -p C:\\Users\\galens\\Downloads\\DgnEC_CRUD.pdf".Split(' ');
 //args = "minio img --clipboard-image".Split(" ");
+//args = "shell build".Split(" ");
 
 // 获取程序执行目录
 var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

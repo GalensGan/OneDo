@@ -13,7 +13,7 @@ using OneDo.Utils;
 
 namespace OneDo.FTPPlugin
 {
-    public class Main : IPlugin
+    public class Startup : IPlugin
     {
         public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
         {

@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 
 namespace OneDo.ShellPlugin
 {
-    public class Main : IPlugin
+    public class Startup : IPlugin
     {
         public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
         {
@@ -78,7 +78,11 @@ namespace OneDo.ShellPlugin
         {
             Process p = new Process();
             // 如果有附加参数，则要添加            
-            var baseDir = Environment.CurrentDirectory;
+            var baseDir = shellModel.WorkingDirectory;
+            if (string.IsNullOrEmpty(baseDir))
+            {
+                baseDir = Environment.CurrentDirectory;
+            }
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
                 WorkingDirectory = baseDir,
@@ -93,12 +97,13 @@ namespace OneDo.ShellPlugin
                 StandardErrorEncoding = Encoding.Default
             };
             p.StartInfo = startInfo;
-            p.Start();//启动程序
-
-            p.StandardInput.AutoFlush = true;
             p.OutputDataReceived += P_OutputDataReceived;
-            p.ErrorDataReceived += P_ErrorDataReceived;
+            p.ErrorDataReceived += P_ErrorDataReceived;           
+            p.Start();//启动程序
             p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            p.StandardInput.AutoFlush = true;
+           
 
             if (!background)
             {

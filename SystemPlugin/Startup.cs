@@ -16,7 +16,7 @@ namespace OneDo.SystemPlugin
     /// <summary>
     /// 安装与卸载插件
     /// </summary>
-    public class Setup : IPlugin
+    public class Startup : IPlugin
     {
         public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
         {

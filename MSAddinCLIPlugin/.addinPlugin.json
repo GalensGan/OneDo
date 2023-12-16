@@ -1,0 +1,22 @@
+{
+	"products": [
+		{
+			"productNames": [ "ms", "microstation" ],
+			"registryKey": "注册表位置",
+			"installPath": "本地目录"
+		}
+	],
+
+	"references": [
+		{
+			"name": "common",
+			"description": "",
+			"references": []
+		},
+		{
+			"name": "ec",
+			"description": "",
+			"references": []
+		}
+	]
+}

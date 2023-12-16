@@ -19,7 +19,7 @@ namespace OneDo.MinioPlugin
     /// <summary>
     /// minio 插件注册
     /// </summary>
-    public class Main : IPlugin
+    public class Startup : IPlugin
     {
         public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
         {
