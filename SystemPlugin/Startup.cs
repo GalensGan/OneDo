@@ -18,7 +18,7 @@ namespace OneDo.SystemPlugin
     /// </summary>
     public class Startup : IPlugin
     {
-        public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
+        public void RegisterCommand(RootCommand rootCommand, JsonNode config)
         {
             // 安装
             var installCommand = new Command("install", "安装OneDo,将该程序添加到用户Path变量中");
@@ -118,8 +118,7 @@ namespace OneDo.SystemPlugin
                     UseShellExecute = true
                 };
                 Process.Start(psi);
-            });
-            return true;
+            });            
         }
     }
 }

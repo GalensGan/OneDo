@@ -10,7 +10,7 @@ namespace OneDo.ShellPlugin
 {
     public class Startup : IPlugin
     {
-        public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
+        public void RegisterCommand(RootCommand rootCommand, JsonNode config)
         {
             var shellCommand = new Command("shell", "执行脚本或者命令");
             shellCommand.AddAlias("cli");
@@ -44,7 +44,7 @@ namespace OneDo.ShellPlugin
                 var targetShells = shellConfigs.FindAll(x => shellNames.Contains(x.Name.ToLower()));
                 if (targetShells.Count == 0)
                 {
-                    AnsiConsole.MarkupLine($"[red]未找到 {string.Join(",",shellNames)} 配置[/]");
+                    AnsiConsole.MarkupLine($"[red]未找到 {string.Join(",", shellNames)} 配置[/]");
                     return;
                 }
 
@@ -63,15 +63,14 @@ namespace OneDo.ShellPlugin
             shellCommand.Add(listCommand);
             listCommand.SetHandler(() =>
             {
-                var list = new ListPluginConfs(config, "shells", new Dictionary<string, string>()
+                var list = new ListPluginConfs(config, "shells", new List<FieldMapper>()
                 {
-                    { "name","名称"},
-                    {"description","描述" }
+                    new FieldMapper("name","名称"),
+                    new FieldMapper("description","描述")
                 });
                 list.Show();
             });
-            #endregion
-            return true;
+            #endregion           
         }
 
         private void StartShell(ShellModel shellModel, bool background)
@@ -98,12 +97,11 @@ namespace OneDo.ShellPlugin
             };
             p.StartInfo = startInfo;
             p.OutputDataReceived += P_OutputDataReceived;
-            p.ErrorDataReceived += P_ErrorDataReceived;           
+            p.ErrorDataReceived += P_ErrorDataReceived;
             p.Start();//启动程序
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
             p.StandardInput.AutoFlush = true;
-           
 
             if (!background)
             {

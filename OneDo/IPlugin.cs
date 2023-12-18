@@ -19,6 +19,6 @@ namespace OneDo.Plugin
         /// </summary>
         /// <param name="rootCommand"></param>
         /// <returns></returns>
-        bool RegisterCommand(RootCommand rootCommand, JsonNode config);
+        void RegisterCommand(RootCommand rootCommand, JsonNode config);
     }
 }

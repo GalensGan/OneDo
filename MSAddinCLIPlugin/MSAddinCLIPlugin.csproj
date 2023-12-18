@@ -10,7 +10,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Templates\**" />
+	  <EmbeddedResource Remove="Templates\**" />
+	  <None Remove="Templates\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\OneDo\OneDo.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="RedirectedProcess.cs">
+	    <SubType>Component</SubType>
+	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>

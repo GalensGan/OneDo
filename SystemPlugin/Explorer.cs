@@ -18,7 +18,7 @@ namespace OneDo.SystemPlugin
     /// </summary>
     public class Explorer : IPlugin
     {
-        public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
+        public void RegisterCommand(RootCommand rootCommand, JsonNode config)
         {
             var openCommand = new Command("open", "打开当前目录或者文件所在的目录");
             rootCommand.AddCommand(openCommand);
@@ -31,10 +31,10 @@ namespace OneDo.SystemPlugin
             {
                 if (string.IsNullOrEmpty(path))
                 {
-                    path = Environment.CurrentDirectory;                    
+                    path = Environment.CurrentDirectory;
                 }
-                                
-                
+
+
                 // 判断是否是文件
                 if (!File.Exists(path) && !Directory.Exists(path))
                 {
@@ -60,8 +60,6 @@ namespace OneDo.SystemPlugin
                 };
                 process.Start();
             }, pathOption);
-
-            return true;
         }
     }
 }

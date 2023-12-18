@@ -15,7 +15,7 @@ namespace OneDo.FTPPlugin
 {
     public class Startup : IPlugin
     {
-        public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
+        public void RegisterCommand(RootCommand rootCommand, JsonNode config)
         {
             var ftpCommand = new Command("ftp", "FTP文件传输");
             rootCommand.Add(ftpCommand);
@@ -112,17 +112,15 @@ namespace OneDo.FTPPlugin
             ftpCommand.Add(listCommand);
             listCommand.SetHandler(() =>
             {
-                var list = new ListPluginConfs(config, "ftps", new Dictionary<string, string>()
+                var list = new ListPluginConfs(config, "ftps",new List<FieldMapper>()
                 {
-                    { "name","名称"},
-                    { "host","主机"},
-                    { "method","方法"},
-                    { "description","描述"}
+                    new FieldMapper("name", "名称"),
+                    new FieldMapper("host", "主机"),
+                    new FieldMapper("method", "方法"),
+                    new FieldMapper("description", "描述")
                 });
                 list.Show();
             });
-
-            return true;
         }
 
         /// <summary>

@@ -21,7 +21,7 @@ namespace OneDo.MinioPlugin
     /// </summary>
     public class Startup : IPlugin
     {
-        public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
+        public void RegisterCommand(RootCommand rootCommand, JsonNode config)
         {
             var minioCommand = new Command("minio", "向 minio 中上传文件");
             rootCommand.Add(minioCommand);
@@ -131,18 +131,16 @@ namespace OneDo.MinioPlugin
             minioCommand.Add(listCommand);
             listCommand.SetHandler(() =>
             {
-                var list = new ListPluginConfs(config, "minios", new Dictionary<string, string>()
+                var list = new ListPluginConfs(config, "minios", new List<FieldMapper>()
                 {
-                    { "name","名称" },
-                    { "endPoint","连接端点"},
-                    { "bucketName","桶名称"},
-                    { "description","描述"}
+                    new FieldMapper("name","名称"),
+                    new FieldMapper("endPoint", "连接端点"),
+                    new FieldMapper("bucketName", "桶名称"),
+                    new FieldMapper("description", "描述")
                 });
                 list.Show();
             });
             #endregion
-
-            return true;
         }
 
         /// <summary>

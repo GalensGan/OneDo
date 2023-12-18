@@ -9,7 +9,7 @@ namespace OneDo.SystemPlugin
 {
     public class PluginSetting : IPlugin
     {
-        public bool RegisterCommand(RootCommand rootCommand, JsonNode config)
+        public void RegisterCommand(RootCommand rootCommand, JsonNode config)
         {
             // 注册子命令
             var settingCommand = new Command("plugin", "设置插件：启用或禁用插件");
@@ -162,8 +162,6 @@ namespace OneDo.SystemPlugin
                 AnsiConsole.WriteLine();
             });
             #endregion
-
-            return true;
         }
 
         /// <summary>

@@ -15,6 +15,11 @@ namespace OneDo.MSAddinCLIPlugin.Models
         public List<BentleyProductModel> Products { get; set; } = new List<BentleyProductModel>();
 
         /// <summary>
+        /// 框架版本
+        /// </summary>
+        public string Framework { get; set; } = "net462";
+
+        /// <summary>
         /// 引用配置
         /// </summary>
         public List<ReferenceModel> References { get; set; } = new List<ReferenceModel>();
