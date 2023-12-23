@@ -7,17 +7,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneDo", "OneDo\OneDo.csproj
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{8C805029-A198-49E5-9CBD-494BEF663312}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemPlugin", "SystemPlugin\SystemPlugin.csproj", "{DFA1AA92-F183-47D2-AB14-B258DCE22E5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemPlugin", "Plugins\SystemPlugin\SystemPlugin.csproj", "{DFA1AA92-F183-47D2-AB14-B258DCE22E5B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FTPPlugin", "FTPPlugin\FTPPlugin.csproj", "{EF1CE7FC-0C0F-43E2-A479-F981990B1842}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FTPPlugin", "Plugins\FTPPlugin\FTPPlugin.csproj", "{EF1CE7FC-0C0F-43E2-A479-F981990B1842}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShellPlugin", "ShellPlugin\ShellPlugin.csproj", "{B1C72F6D-D515-4F81-9B3B-3A92197616C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShellPlugin", "Plugins\ShellPlugin\ShellPlugin.csproj", "{B1C72F6D-D515-4F81-9B3B-3A92197616C7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinioPlugin", "MinioPlugin\MinioPlugin.csproj", "{D449EFEA-D965-45E6-8729-C57A28DEFF6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinioPlugin", "Plugins\MinioPlugin\MinioPlugin.csproj", "{D449EFEA-D965-45E6-8729-C57A28DEFF6F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WakeOnLanPlugin", "WakeOnLanPlugin\WakeOnLanPlugin.csproj", "{18F4C00C-C78C-4197-8F17-E660730C49BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WakeOnLanPlugin", "Plugins\WakeOnLanPlugin\WakeOnLanPlugin.csproj", "{18F4C00C-C78C-4197-8F17-E660730C49BF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSAddinCLIPlugin", "MSAddinCLIPlugin\MSAddinCLIPlugin.csproj", "{34BA7A3C-CD3C-43C2-8AA7-30AF17097836}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSAddinCLIPlugin", "Plugins\MSAddinCLIPlugin\MSAddinCLIPlugin.csproj", "{34BA7A3C-CD3C-43C2-8AA7-30AF17097836}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedAssemblyListPlugin", "Plugins\ManagedAssemblyListPlugin\ManagedAssemblyListPlugin.csproj", "{9D0CB216-9C73-4006-9923-2970D5EA258C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{34BA7A3C-CD3C-43C2-8AA7-30AF17097836}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34BA7A3C-CD3C-43C2-8AA7-30AF17097836}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34BA7A3C-CD3C-43C2-8AA7-30AF17097836}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D0CB216-9C73-4006-9923-2970D5EA258C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D0CB216-9C73-4006-9923-2970D5EA258C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D0CB216-9C73-4006-9923-2970D5EA258C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D0CB216-9C73-4006-9923-2970D5EA258C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +70,7 @@ Global
 		{D449EFEA-D965-45E6-8729-C57A28DEFF6F} = {8C805029-A198-49E5-9CBD-494BEF663312}
 		{18F4C00C-C78C-4197-8F17-E660730C49BF} = {8C805029-A198-49E5-9CBD-494BEF663312}
 		{34BA7A3C-CD3C-43C2-8AA7-30AF17097836} = {8C805029-A198-49E5-9CBD-494BEF663312}
+		{9D0CB216-9C73-4006-9923-2970D5EA258C} = {8C805029-A198-49E5-9CBD-494BEF663312}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B3DF2C37-2F02-44EA-99A9-62E1DD0DA949}

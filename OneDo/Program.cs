@@ -5,6 +5,7 @@ using System.CommandLine;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Xml.Linq;
 
 // 调试代码
 //args ="conf user".split(" ");
@@ -17,6 +18,8 @@ using System.Text.Json.Nodes;
 //args = "shell build".Split(" ");
 //args = "wol test --ip 127.0.0.1 --port 9 --mac d85083810F03".Split(" ");
 //args = "addin new wpf -n testSln".Split(" ");
+//args = "addin init cmd".Split(" ");
+//args = "addin ref add -n ec".Split(" ");
 
 // 获取程序执行目录
 var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

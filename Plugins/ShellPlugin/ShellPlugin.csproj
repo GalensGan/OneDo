@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>OneDo.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<Version>1.0.0.0</Version>
+		<Authors>galens</Authors>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\OneDo\OneDo.csproj" />
+	</ItemGroup>
+
+</Project>

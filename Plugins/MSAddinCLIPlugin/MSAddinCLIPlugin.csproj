@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Version>1.0.0.0</Version>
+		<Authors>galens</Authors>
+		<RootNamespace>OneDo.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="Templates\**" />
+	  <EmbeddedResource Remove="Templates\**" />
+	  <None Remove="Templates\**" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove=".addinPlugin.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\OneDo\OneDo.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="RedirectedProcess.cs">
+			<SubType>Component</SubType>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include=".addinPlugin.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+</Project>

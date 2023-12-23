@@ -13,15 +13,44 @@ namespace OneDo.Utils
     /// </summary>
     public class ListPluginConfs
     {
-        private JsonNode _config;
-        private string _fieldName;
+        private JsonArray _datas;
         private List<FieldMapper> _fieldsMapper;
+        private bool _valid = true;
+        private string _fieldName;
 
-        public ListPluginConfs(JsonNode config, string fieldName, List<FieldMapper> fieldsMapper)
+        /// <summary>
+        /// 构造
+        /// </summary>
+        /// <param name="config">配置对象节点</param>
+        /// <param name="fieldName">数组字段名</param>
+        /// <param name="fieldsMapper"></param>
+        public ListPluginConfs(JsonNode config, string fieldName, List<FieldMapper> fieldsMapper) : this(config[fieldName] as JsonArray, fieldsMapper)
         {
-            _config = config;
             _fieldName = fieldName;
-            _fieldsMapper = fieldsMapper;
+
+            if (config == null)
+            {
+                AnsiConsole.MarkupLine("[red]缺少根配置[/]");
+                _valid = false;
+            }
+
+            if (string.IsNullOrEmpty(fieldName))
+            {
+                AnsiConsole.MarkupLine("[red]需指定插件根字段名[/]");
+                _valid = false;
+            }
+        }
+
+        public ListPluginConfs(JsonArray? jsonArray, List<FieldMapper> fieldsMapper)
+        {
+            _datas = jsonArray;
+            _fieldsMapper = fieldsMapper ?? new List<FieldMapper>();
+
+            if (_datas == null)
+            {
+                AnsiConsole.MarkupLine("[red]配置数据就为数组类型[/]");
+                _valid = false;
+            }
         }
 
         /// <summary>
@@ -29,18 +58,15 @@ namespace OneDo.Utils
         /// </summary>
         public bool Show()
         {
+            if (!_valid) return false;
+
             // 查找数据
-            if (_config == null)
+            if (_datas == null)
             {
                 AnsiConsole.MarkupLine("[red]配置数据为空[/]");
                 return false;
             }
 
-            if (string.IsNullOrEmpty(_fieldName))
-            {
-                AnsiConsole.MarkupLine("[red]需指定插件根字段名[/]");
-                return false;
-            }
 
             if (_fieldsMapper == null || _fieldsMapper.Count == 0)
             {
@@ -48,7 +74,7 @@ namespace OneDo.Utils
                 return false;
             }
 
-            AnsiConsole.MarkupLine($"Available {_fieldName} : ");
+            if (!string.IsNullOrEmpty(_fieldName)) AnsiConsole.MarkupLine($"Available {_fieldName} : ");
 
             var grid = new Grid();
             // 添加列定义
@@ -62,7 +88,8 @@ namespace OneDo.Utils
             grid.AddRow(_fieldsMapper.Select(x =>
             {
                 // 获取 x 的字节数
-                var length = Encoding.UTF8.GetBytes(x.DisplayName).Length;
+                var length = GetSplitterLengh(x.DisplayName);
+
                 var spliter = "";
                 for (int i = 0; i < length; i++)
                 {
@@ -71,20 +98,7 @@ namespace OneDo.Utils
                 return new Text(spliter, new Style(Color.SpringGreen1)).LeftJustified();
             }).ToArray());
 
-            // 获取所有的值
-            if (_config[_fieldName] == null)
-            {
-                AnsiConsole.MarkupLine($"[red]配置中不存在 {_fieldName}[/]");
-                return false;
-            }
-
-            var array = _config[_fieldName].AsArray();
-            if (array == null)
-            {
-                AnsiConsole.MarkupLine($"[red]配置{_fieldName} 应是数组形式[/]");
-                return false;
-            }
-
+            var array = _datas;
             List<List<string>> rows = new List<List<string>>();
             foreach (var x in array)
             {
@@ -112,6 +126,23 @@ namespace OneDo.Utils
             AnsiConsole.WriteLine();
 
             return true;
+        }
+
+        /// <summary>
+        /// 获取分隔符长度
+        /// </summary>
+        /// <param name="title"></param>
+        /// <returns></returns>
+        private int GetSplitterLengh(string displayName)
+        {
+            // 按单个字符长度计算，若单个字符大于 2,则按 2 计算
+            int lengh = 0;
+            foreach (var chr in displayName)
+            {
+                if (chr > 255) lengh += 2;
+                else lengh += 1;
+            }
+            return lengh;
         }
     }
 }
