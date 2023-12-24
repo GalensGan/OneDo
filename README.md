@@ -145,12 +145,13 @@ ftp 的配置需定义到 `ftps` 的数组中，其结构如下：
 1. windows 可通过 scoop 安装
 
    ``` powershell
-   scoop add bucket  
-   ```
-
+   scoop add bucket uamazing https://gitee.com/galensgan/galens-bucket.git
+   scoop install onedo
+```
    
-
 2. 直接下载安装包使用
+
+   https://obs.uamazing.cn:52443/public/files/soft/OneDo-v1.0.0.7z
 
 ### 增加配置
 

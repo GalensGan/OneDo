@@ -2,8 +2,8 @@
   "profiles": {
     "OneDo": {
       "commandName": "Project",
-      "commandLineArgs": "addin ref rm -n common",
-      "workingDirectory": "D:\\Develop\\Personal\\temp\\test6"
+      "commandLineArgs": "plugins ls",
+      "workingDirectory": "D:\\Develop\\Personal"
     }
   }
 }

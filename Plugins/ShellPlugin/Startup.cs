@@ -81,7 +81,8 @@ namespace OneDo.ShellPlugin
             var baseDir = shellModel.WorkingDirectory;
             if (string.IsNullOrEmpty(baseDir))
             {
-                baseDir = Environment.CurrentDirectory;
+                // 默认使用插件目录下的 Shells 目录
+                baseDir = Path.Combine(Environment.CurrentDirectory, "Shells");
             }
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {

@@ -28,7 +28,7 @@ var pluginPath = Path.Combine(currentDirectory, "Plugins");
 // 判断目录是否存在，不存在，则无法启动程序
 if (!Directory.Exists(pluginPath))
 {
-    AnsiConsole.MarkupLine("[read]{0} 目录不存在[/]", Path.GetDirectoryName(pluginPath));
+    AnsiConsole.MarkupLine("[red]{0} 目录不存在[/]", pluginPath);
     return;
 }
 
