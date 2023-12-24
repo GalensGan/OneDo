@@ -165,6 +165,9 @@ namespace OneDO.MSAddinCLIPlugin
                 };
                 director.Start();
             }, refNameOption, grepOption);
+
+            // 引用操作根命令
+            rootCommand.Add(refCommand);
             #endregion
 
             #region 配置相关

@@ -60,6 +60,7 @@ namespace OneDo.ShellPlugin
 
             #region 命令列表
             var listCommand = new Command("list", "查看所有可用配置");
+            listCommand.AddAlias("ls");
             shellCommand.Add(listCommand);
             listCommand.SetHandler(() =>
             {
