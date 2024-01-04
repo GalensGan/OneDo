@@ -17,7 +17,7 @@ namespace OneDo.MSAddinCLIPlugin.Utils
         /// <returns></returns>
         public static IEnumerable<XElement> DescendantsWithNSP(this XElement element, string localName)
         {
-            var fullName = "{" + element.Name.NamespaceName + "}" + localName;
+            var fullName = XName.Get(localName, element.Name.Namespace.ToString());
             return element.Descendants(fullName);
         }
 

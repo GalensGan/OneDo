@@ -1,4 +1,5 @@
-﻿using Bentley.DgnPlatformNET;
+﻿using System;
+using Bentley.DgnPlatformNET;
 using Bentley.MstnPlatformNET;
 
 namespace AddinNamespace

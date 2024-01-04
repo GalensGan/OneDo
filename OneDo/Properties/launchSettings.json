@@ -2,8 +2,8 @@
   "profiles": {
     "OneDo": {
       "commandName": "Project",
-      "commandLineArgs": "plugins ls",
-      "workingDirectory": "D:\\Develop\\Personal"
+      "commandLineArgs": "watermark --text galens --out watermarkOutput --grep paste",
+      "workingDirectory": "C:\\Users\\galens\\Desktop\\temp\\today\\image"
     }
   }
 }
