@@ -68,7 +68,7 @@ namespace OneDo.WatermarkPlugin
             }
             else if (options.Fill)
             {
-                int space = 270;
+                int space = options.FillSpace;
                 // 获取所有的位置
                 if (imageWidth <= 2 * space && imageHeight <= 2 * space)
                 {

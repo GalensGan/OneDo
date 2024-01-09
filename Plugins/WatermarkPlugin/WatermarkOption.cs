@@ -28,6 +28,11 @@ namespace OneDo.WatermarkPlugin
         public bool Fill { get; set; }
 
         /// <summary>
+        /// 填充间距
+        /// </summary>
+        public int FillSpace { get; set; }
+
+        /// <summary>
         /// 加水印的文件路径
         /// </summary>
         public string TargetPath { get; set; }
@@ -115,6 +120,13 @@ namespace OneDo.WatermarkPlugin
                 var positionConfirm = AnsiConsole.Ask("已经指定 --position, 将忽略 --fill 参数，是否继续？([springgreen1]Y/N[/])", "Y");
                 if (!positionConfirm.ToLower().Contains("y")) return false;
                 AnsiConsole.WriteLine();
+            }
+
+            // 验证 FillSpace 的值
+            if (FillSpace <= 0)
+            {
+                AnsiConsole.MarkupLine("[red]--fill-space 参数应大于 0[/]");
+                return false;
             }
 
             // 验证图片水印
@@ -263,7 +275,7 @@ namespace OneDo.WatermarkPlugin
                         positionX = imageWidth / 2;
                         break;
                     case "right":
-                        positionX = imageWidth-10;
+                        positionX = imageWidth - 10;
                         break;
                 }
                 switch (positionArray[1])
@@ -275,7 +287,7 @@ namespace OneDo.WatermarkPlugin
                         positionY = imageHeight / 2;
                         break;
                     case "bottom":
-                        positionY = imageHeight-10;
+                        positionY = imageHeight - 10;
                         break;
                 }
                 return new Point(positionX, positionY);

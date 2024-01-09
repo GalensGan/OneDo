@@ -23,13 +23,15 @@ namespace OneDo.WatermarkPlugin
             var silentOption = new Option<bool>("--silent", "静默模式");
             var positionOption = new Option<string>("--position", "水印位置");
             var fillOption = new Option<bool>("--fill", "满布水印");
+            var fillSpaceOption = new Option<int>("--fill-space", "满布间距");
+            fillSpaceOption.SetDefaultValue(270);
             var pathOption = new Option<string>("--path", "需加水印图片路径或目录(默认当前目录)");
             var suffixOption = new Option<string>("--suffix", "水印图片输出后缀");
             suffixOption.SetDefaultValue("_watermarked");
             var recursiveOption = new Option<bool>("--recursive", "递归所有子目录");
             recursiveOption.AddAlias("-r");
-            var grepOption = new Option<string>("--grep", "正则匹配文件名");
-            var opacityOption = new Option<float>("--opacity", "透明度");
+            var grepOption = new Option<string>("--grep", "按正则匹配文件名");
+            var opacityOption = new Option<float>("--opacity", "不透明度(0-1.0，0表示完全透明，1 表示不透明)");
             opacityOption.SetDefaultValue(1f);
             var outDirOption = new Option<string>("--out", "加水印后的图片保存目录");
             var angleOption = new Option<float>("--angle", "水印旋转角度");
@@ -40,14 +42,14 @@ namespace OneDo.WatermarkPlugin
 
             List<Option> optionsList = new()
             {
-                silentOption,positionOption,fillOption,
+                silentOption,positionOption,fillOption,fillSpaceOption,
                 pathOption,suffixOption,recursiveOption,
                 grepOption,opacityOption,outDirOption,angleOption,
                 watermarkTextOption,watermarkImageOption
             };
             optionsList.ForEach(x => watermarkCommand.Add(x));
 
-            var optionsBinder = new WatermarkBinder(silentOption, positionOption, fillOption,
+            var optionsBinder = new WatermarkBinder(silentOption, positionOption, fillOption, fillSpaceOption,
                 pathOption, suffixOption, recursiveOption, grepOption,
                 opacityOption, outDirOption, angleOption, watermarkTextOption, watermarkImageOption);
             watermarkCommand.SetHandler(options =>

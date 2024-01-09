@@ -23,13 +23,22 @@ namespace OneDo.WatermarkPlugin
             // 添加图片水印
             if (string.IsNullOrEmpty(Options.Image)) return base.Save(savePath);
 
-            // 添加图片水印
+            // 水印图片
             var watermarkImage = Image.Load<Rgba32>(Options.Image);
             watermarkImage.Mutate(x =>
             {
                 x.BackgroundColor(new Rgba32(0, 0, 0, 0))
                 .Rotate(-Options.Angle);
             });
+            // 若水印太大，需要对水印进等比缩小
+            double limitRate = 0.2;
+            double widthRate = watermarkImage.Width / (limitRate * Image.Width);
+            double heightRate = watermarkImage.Height / (limitRate * Image.Height);
+            if (widthRate > 1 || heightRate > 1)
+            {
+                double scale = Math.Min(1 / widthRate, 1 / heightRate);
+                watermarkImage.Mutate(x => x.Resize((int)(watermarkImage.Width * scale), (int)(watermarkImage.Height * scale)));
+            }
 
             // 获取水印位置
             List<Point> positions = TextWatermark.GetWatermarkPositions(Image.Width - watermarkImage.Width, Image.Height - watermarkImage.Height, Options);

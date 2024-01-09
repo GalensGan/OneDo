@@ -14,6 +14,7 @@ namespace OneDo.WatermarkPlugin
         private Option<bool> _silentOption;
         private Option<string> _positionOption;
         private Option<bool> _fillOption;
+        private Option<int> _fillSpaceOption;
 
         private Option<string> _pathOption;
         private Option<string> _suffixOption;
@@ -27,7 +28,7 @@ namespace OneDo.WatermarkPlugin
         private Option<string> _textOption;
         private Option<string> _imageOption;
 
-        public WatermarkBinder(Option<bool> silentOption, Option<string> positionOption, Option<bool> fillOption,
+        public WatermarkBinder(Option<bool> silentOption, Option<string> positionOption, Option<bool> fillOption, Option<int> fillSpaceOption,
             Option<string> pathOption, Option<string> suffixOption, Option<bool> recursiveOption,
             Option<string> grepOption, Option<float> opacityOption, Option<string> outDirOption,
             Option<float> angleOption, Option<string> textOption, Option<string> imageOption)
@@ -35,6 +36,7 @@ namespace OneDo.WatermarkPlugin
             _silentOption = silentOption;
             _positionOption = positionOption;
             _fillOption = fillOption;
+            _fillSpaceOption = fillSpaceOption;
             _pathOption = pathOption;
             _suffixOption = suffixOption;
             _recursiveOption = recursiveOption;
@@ -53,6 +55,7 @@ namespace OneDo.WatermarkPlugin
                 Silent = bindingContext.ParseResult.GetValueForOption(_silentOption),
                 Position = bindingContext.ParseResult.GetValueForOption(_positionOption),
                 Fill = bindingContext.ParseResult.GetValueForOption(_fillOption),
+                FillSpace = bindingContext.ParseResult.GetValueForOption(_fillSpaceOption),
                 TargetPath = bindingContext.ParseResult.GetValueForOption(_pathOption),
                 Suffix = bindingContext.ParseResult.GetValueForOption(_suffixOption),
                 Recursive = bindingContext.ParseResult.GetValueForOption(_recursiveOption),

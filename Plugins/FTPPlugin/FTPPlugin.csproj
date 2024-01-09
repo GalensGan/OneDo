@@ -3,6 +3,7 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<RootNamespace>OneDo.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<Version>1.0.0.0</Version>
 		<Authors>galens</Authors>
