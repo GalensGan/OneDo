@@ -1,7 +1,10 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using OneDo.Plugin;
 using Spectre.Console;
+using System;
 using System.CommandLine;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -64,7 +67,7 @@ catch (Exception)
 }
 
 // 获取禁用的插件（默认都加载）
-if (config["disabledPlugins"] !=null)
+if (config["disabledPlugins"] != null)
 {
     var disabledPluginNames = config["disabledPlugins"].AsArray().Select(x => x.GetValue<string>());
     dllNames = dllNames.Except(disabledPluginNames);
@@ -76,20 +79,21 @@ List<string> allDllNames = null;
 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
 {
-    if(allDllNames == null)
+    if (allDllNames == null)
     {
-        allDllNames = Directory.GetFiles(currentDirectory, "*.dll",SearchOption.AllDirectories).ToList();
+        allDllNames = Directory.GetFiles(currentDirectory, "*.dll", SearchOption.AllDirectories).ToList();
     }
 
     var dllName = args.Name.Split(',')[0];
     var dllFullName = allDllNames.Where(x => x.EndsWith(dllName + ".dll")).FirstOrDefault();
+
     return dllFullName == null ? null : Assembly.LoadFile(dllFullName);
 }
 
 // 加载插件
 foreach (var dllName in dllNames)
 {
-    var dllFullPath = allPluginDllFullNames.Where(x=>x.EndsWith(dllName+".dll")).FirstOrDefault();
+    var dllFullPath = allPluginDllFullNames.Where(x => x.EndsWith(dllName + ".dll")).FirstOrDefault();
     var dll = Assembly.LoadFrom(dllFullPath);
     var pluginTypes = dll.GetTypes().Where(x => typeof(IPlugin).IsAssignableFrom(x));
 

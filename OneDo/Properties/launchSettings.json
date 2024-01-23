@@ -2,8 +2,8 @@
   "profiles": {
     "OneDo": {
       "commandName": "Project",
-      "commandLineArgs": "watermark --grep snipaste -r --out results --image .\\watermark2.jpg --angle 20 --fill",
-      "workingDirectory": "C:\\Users\\galens\\Desktop\\temp\\today\\image"
+      "commandLineArgs": "max archive -o test",
+      "workingDirectory": "C:\\Users\\galens\\Desktop\\新建文件夹"
     }
   }
 }
