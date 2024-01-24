@@ -5,28 +5,18 @@ using OpenMcdf;
 Console.WriteLine("Hello, World!");
 
 
-string filename = "C:\\Users\\galens\\Desktop\\test.max"; // 替换为实际的文件路径
+string filename = "C:\\Users\\galens\\Desktop\\新建文件夹\\max\\金女贞_01_01.jpg"; // 替换为实际的文件路径
 
-CompoundFile cf = new(filename);
-cf.RootStorage.VisitEntries(item =>
+bool IsSymbolic(string path)
 {
-    var name = item.Name;
-    Console.WriteLine($"entry:{name}-{item.Size}-{item.IsStream}-{item.IsStorage}-{item.CLSID}");
-}, true);
-var sceneStrem = cf.RootStorage.GetStream("FileAssetMetaData2");
+    FileInfo pathInfo = new FileInfo(path);
+   
 
-var file = new FileStream("C:\\Users\\galens\\Desktop\\test.bin", FileMode.Create);
-var bytes =new byte[sceneStrem.Size];
-sceneStrem.Read(bytes, 0, (int)sceneStrem.Size);
-file.Write(bytes);
-file.Close();
+    Console.WriteLine(pathInfo.FullName);
 
-cf.Close();
+    return pathInfo.Attributes.HasFlag(FileAttributes.ReparsePoint);    
+}
 
-var relative = Path.GetRelativePath(Environment.CurrentDirectory, filename);
-Console.WriteLine($"{relative}");
-
-List<string> names = EverythingSDK.SearchFiles("test.max");
-names.ForEach(x=>Console.WriteLine(x));
+Console.WriteLine(IsSymbolic(filename));
 
 Console.ReadKey();

@@ -2,7 +2,7 @@
   "profiles": {
     "OneDo": {
       "commandName": "Project",
-      "commandLineArgs": "max archive -o test",
+      "commandLineArgs": "max archive -o test -s",
       "workingDirectory": "C:\\Users\\galens\\Desktop\\新建文件夹"
     }
   }

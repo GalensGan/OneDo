@@ -117,6 +117,8 @@ namespace OneDo.ThreeDSMaxPlugin
         [DllImport("Everything64.dll")]
         public static extern UInt32 Everything_GetTotResults();
         [DllImport("Everything64.dll")]
+        public static extern bool Everything_IsDBLoaded();
+        [DllImport("Everything64.dll")]
         public static extern bool Everything_IsVolumeResult(UInt32 nIndex);
         [DllImport("Everything64.dll")]
         public static extern bool Everything_IsFolderResult(UInt32 nIndex);
@@ -229,7 +231,6 @@ namespace OneDo.ThreeDSMaxPlugin
         public static string SearchOne(string filter)
         {
             if (string.IsNullOrEmpty(filter)) return null;
-
             // set the search
             Everything_SetSearchW(filter);
 
@@ -259,10 +260,17 @@ namespace OneDo.ThreeDSMaxPlugin
             Everything_GetResultDateModified(0, out long date_modified);
 
             // nMaxCount 指缓冲区大小
-            Everything_GetResultFullPathName(0, stringBuilder, 512);
+            // 要排除回收站中的内容
+            for (uint i = 0; i < resultCount; i++)
+            {
+                stringBuilder.Clear();
+                Everything_GetResultFullPathName(i, stringBuilder, 512);
+                string result = stringBuilder.ToString();
+                if (result.ToUpper().Contains("$RECYCLE.BIN")) continue;
+                return result;
+            }
 
-            // 将指针中的内容转换为字符串
-            return stringBuilder.ToString();
+            return null;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<OutputType>Exe</OutputType>
+		<OutputType>Library</OutputType>
 		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -10,6 +10,10 @@
 		<Authors>galens</Authors>
 		<RootNamespace>OneDo.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Program.cs" />
+	</ItemGroup>
 
 	<ItemGroup>
 	  <None Remove="dll\Everything64.dll" />

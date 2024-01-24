@@ -6,7 +6,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Security.Authentication;
+using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -26,44 +31,53 @@ namespace OneDo.ThreeDSMaxPlugin
             var archiveCommand = new Command("archive", "使用 everything 从本机中查找所有的贴图并进行归档");
             maxCommand.Add(archiveCommand);
 
-            var pathsOption = new Option<List<string>>("--path", "max 文件名或者目录名");
+            var pathsOption = new Option<List<string>>("--path", "[可选] max 文件名或者目录名(默认为当前环境目录)");
             pathsOption.AddAlias("-p");
             archiveCommand.Add(pathsOption);
-            var grepOption = new Option<string>("--grep", "max文件过滤方式(支持正则表达式)");
+            var grepOption = new Option<string>("--grep", "[可选] max文件过滤方式(支持正则表达式)");
             archiveCommand.Add(grepOption);
-            var yesOption = new Option<bool>("--yes", "自动确认");
+            var yesOption = new Option<bool>("--yes", "[可选] 自动确认");
             yesOption.AddAlias("-y");
             archiveCommand.Add(yesOption);
-            var outOption = new Option<string>("--out", "输出目录");
+            var outOption = new Option<string>("--out", "[可选] 输出目录，所有的文件都会归档到这个目录中");
             outOption.AddAlias("-o");
             archiveCommand.Add(outOption);
-            var softLinkOption = new Option<bool>("--soft-link", "使用软链定位到贴图文件(不占用空间)");
+            var softLinkOption = new Option<bool>("--soft-link", "[可选] 使用软链定位到贴图文件(不占用额外空间)");
             softLinkOption.AddAlias("-s");
             archiveCommand.Add(softLinkOption);
+            var reverseOption = new Option<bool>("--reverse", "[可选] 当使用软链时，将归档的文件移动到输出目录，然后创建一个软链指向当前位置");
+            reverseOption.AddAlias("-r");
+            archiveCommand.Add(reverseOption);
 
             // 添加操作
-            archiveCommand.SetHandler((path, filter, yes, outDir, softLink) =>
+            archiveCommand.SetHandler((path, filter, yes, outDir, softLink, reverse) =>
             {
-                // 判断输出目录是否存在，不存在则新建
-                if (!string.IsNullOrEmpty(outDir))
-                {
-                    // 说明输出目录不存在
-                    if (!yes && !Directory.Exists(outDir))
-                    {
-                        var confirmOutDir = AnsiConsole.Ask<string>($"输出目录：{outDir} 不存在,是否新建？(y/n)", "y");
-                        if (!confirmOutDir.ToLower().Contains("y"))
-                        {
-                            AnsiConsole.MarkupLine($"[red]执行中断。输出目录不存在[/]");
-                            return;
-                        }
-                    }
+                // 检查 everything 是否运行
+                if (!CheckEverythingRunning()) return;
 
-                    // 新建目录
-                    Directory.CreateDirectory(outDir);
+                // 验证是否有管理员权限
+                if (!CheckAuth(outDir, softLink, reverse)) return;
+
+                // 限制 reverse
+                // 仅当有 outDir 且 softLink 时才能使用 reverse
+                if (string.IsNullOrEmpty(outDir) || !softLink)
+                {
+                    // 重置为 false
+                    reverse = false;
                 }
 
+                if (!ConfirmOutDir(outDir, yes)) return;
+
                 // 获取 max 文件
-                List<string> dotMaxFiles = GetDotMaxFiles(path, filter);
+                List<MaxFile> dotMaxFiles = GetDotMaxFiles(path, filter, outDir);
+                if (dotMaxFiles.Count == 0)
+                {
+                    AnsiConsole.MarkupLine($"[red]未找到 .max 文件[/]");
+                    return;
+                }
+
+                // 如果有 outDir, 要对文件使用 hash 去重
+                dotMaxFiles = DistincFiles(dotMaxFiles, outDir);
 
                 // 对 max 文件进行确认
                 if (!ConfirmMaxFiles(dotMaxFiles, yes))
@@ -72,8 +86,6 @@ namespace OneDo.ThreeDSMaxPlugin
                     return;
                 }
 
-                // 开始添加水印
-                // Synchronous
                 AnsiConsole.Status()
                     .Start("max 文件归档中...", ctx =>
                     {
@@ -83,12 +95,80 @@ namespace OneDo.ThreeDSMaxPlugin
                         //Task.WaitAll(tasks.ToArray());
 
                         foreach (var file in dotMaxFiles)
-                            ArchiveMaxFile(file, yes, outDir, softLink);
+                            ArchiveMaxFile(file, yes, outDir, softLink, reverse);
                     });
 
-                AnsiConsole.MarkupLine($"[springgreen1]归档成功！共计 {dotMaxFiles.Count} 项[/]");
+                // 显示归档状态
+                ShowArchiveStatus(dotMaxFiles);
 
-            }, pathsOption, grepOption, yesOption, outOption, softLinkOption);
+
+            }, pathsOption, grepOption, yesOption, outOption, softLinkOption, reverseOption);
+        }
+
+        private static bool CheckEverythingRunning()
+        {
+            if (EverythingSDK.Everything_IsDBLoaded()) return true;
+            string everythingHome = "https://www.voidtools.com/zh-cn/";
+            AnsiConsole.MarkupLine($"[red]该插件需要先启动 Everything[/], 点击此处下载：[blue]{everythingHome}[/]");
+            return false;
+        }
+
+
+        /// <summary>
+        /// 验证权限
+        /// </summary>
+        /// <returns></returns>
+        private static bool CheckAuth(string outDir, bool softLink, bool reverseLink)
+        {
+            if (string.IsNullOrEmpty(outDir)) return true;
+            if (!softLink || !reverseLink) return true;
+
+            // 验证是否有管理员权限
+            if (!IsAdministrator())
+            {
+                AnsiConsole.MarkupLine($"[red]软链接需要管理员权限[/]");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 是否是管理员
+        /// </summary>
+        /// <returns></returns>
+        private static bool IsAdministrator()
+        {
+            // 获取当前用户的 Windows 身份
+            WindowsIdentity identity = WindowsIdentity.GetCurrent();
+
+            // 创建 WindowsPrincipal 对象
+            WindowsPrincipal principal = new WindowsPrincipal(identity);
+
+            // 检查是否是管理员
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        private static bool ConfirmOutDir(string outDir, bool yes)
+        {
+            // 判断输出目录是否存在，不存在则新建
+            if (string.IsNullOrEmpty(outDir)) return true;
+
+            // 说明输出目录不存在
+            if (!yes && !Directory.Exists(outDir))
+            {
+                var confirmOutDir = AnsiConsole.Ask<string>($"输出目录：{outDir} 不存在,是否新建？(y/n)", "y");
+                if (!confirmOutDir.ToLower().Contains("y"))
+                {
+                    AnsiConsole.MarkupLine($"[red]执行中断。输出目录不存在[/]");
+                    return false;
+                }
+            }
+
+            // 新建目录
+            Directory.CreateDirectory(outDir);
+
+            return true;
         }
 
         /// <summary>
@@ -97,7 +177,7 @@ namespace OneDo.ThreeDSMaxPlugin
         /// <param name="paths"></param>
         /// <param name="filter"></param>
         /// <returns></returns>
-        private List<string> GetDotMaxFiles(List<string> paths, string filter)
+        private static List<MaxFile> GetDotMaxFiles(List<string> paths, string filter, string outDir)
         {
             // 为空时，使用当前环境目录
             if (paths == null)
@@ -106,12 +186,13 @@ namespace OneDo.ThreeDSMaxPlugin
                 paths.Add(Environment.CurrentDirectory);
 
             // 解析其中的 max 文件
-            List<string> fileNames = new List<string>();
+            List<string?> fileNames = new List<string>();
             foreach (string path in paths)
             {
-                if (File.Exists(path))
+                var fileInfo = new FileInfo(path);
+                if (fileInfo.Exists)
                 {
-                    fileNames.Add(path);
+                    fileNames.Add(fileInfo.FullName);
                     continue;
                 }
 
@@ -119,10 +200,36 @@ namespace OneDo.ThreeDSMaxPlugin
                 {
                     // 说明是目录，读取目录下所有 .max 文件
                     var maxFiles = Directory.GetFiles(path, "*.max", SearchOption.AllDirectories);
-                    fileNames.AddRange(maxFiles);
+                    var fullNames = maxFiles.ToList().ConvertAll(x=> Path.GetFullPath(x));
+                    fileNames.AddRange(fullNames);
                     continue;
                 }
             }
+
+            // 文件中可能有软链，将软链转换成真实路径
+            fileNames = fileNames.ConvertAll(x =>
+            {
+                FileInfo pathInfo = new FileInfo(x);
+                if (pathInfo.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                {
+                    // 说明是软链
+                    string linkTarget = pathInfo.LinkTarget;
+                    if (linkTarget == null) return null;
+                    return Path.GetFullPath(linkTarget);
+                }
+                return x;
+            }).FindAll(x => !string.IsNullOrEmpty(x));
+
+            // 去掉 outDir 中的文件
+            if (!string.IsNullOrEmpty(outDir))
+            {
+                var outFiles = Directory.GetFiles(outDir, "*.max", SearchOption.AllDirectories);
+                var outFileFullNames = outFiles.ToList().ConvertAll(x => Path.GetFullPath(x));
+                fileNames = fileNames.FindAll(x => !outFileFullNames.Contains(x));
+            }
+
+            // 去重
+            fileNames = fileNames.Distinct().ToList();
 
             // 对文件执行匹配
             if (!string.IsNullOrEmpty(filter))
@@ -131,26 +238,73 @@ namespace OneDo.ThreeDSMaxPlugin
                 fileNames = fileNames.FindAll(x => regex.IsMatch(x));
             }
 
-            return fileNames;
+            return fileNames.ConvertAll(x => new MaxFile()
+            {
+                MaxPath = x
+            });
+        }
+
+        /// <summary>
+        /// 按 hash 值去重
+        /// </summary>
+        /// <param name="maxFiles"></param>
+        /// <param name="outDir"></param>
+        /// <returns></returns>
+        private static List<MaxFile> DistincFiles(List<MaxFile> maxFiles, string outDir)
+        {
+            if (string.IsNullOrEmpty(outDir)) return maxFiles;
+            if (maxFiles.Count <= 1) return maxFiles;
+
+            // 计算文件的 hash 值
+            var tasks = maxFiles.ConvertAll(x => Task.Run(() =>
+            {
+                var hash = ComputeFileHash(x.MaxPath);
+                x.Hash = hash;
+            }));
+            Task.WaitAll(tasks.ToArray());
+
+            // 按 hash 值去重
+            return maxFiles.DistinctBy(x => x.Hash).ToList();
+        }
+
+        private static string ComputeFileHash(string filePath)
+        {
+            try
+            {
+                using var stream = File.OpenRead(filePath);
+                HashAlgorithm hashAlgorithm = SHA256.Create();
+                byte[] hashBytes = hashAlgorithm.ComputeHash(stream);
+                return BitConverter.ToString(hashBytes).Replace("-", "");
+            }
+            catch (FileNotFoundException ex)
+            {
+                AnsiConsole.MarkupLine($"[red]File not found: {ex.Message}[/]");
+                return null;
+            }
+            catch (IOException ex)
+            {
+                AnsiConsole.MarkupLine($"[red]Error reading the file: {ex.Message}[/]");
+                return null;
+            }
         }
 
         /// <summary>
         /// 确认 max file 文件数量
         /// </summary>
         /// <returns></returns>
-        private bool ConfirmMaxFiles(List<string> files, bool yes)
+        private static bool ConfirmMaxFiles(List<MaxFile> files, bool yes)
         {
             // 向用户展示数据
             JsonArray showResults = new JsonArray();
             foreach (var file in files)
             {
-                var fileInfo = new FileInfo(file);
+                var fileInfo = new FileInfo(file.MaxPath);
                 var fileName = fileInfo.FullName;
 
                 showResults.Add(new JsonObject()
                 {
                     { "fileName",fileName},
-                    { "fileSize",FormatFileSize(file.Length)},
+                    { "fileSize",FormatFileSize(fileInfo.Length)},
                     { "lastModifyDate",fileInfo.LastWriteTime.ToString("F")}
                 });
             }
@@ -175,7 +329,7 @@ namespace OneDo.ThreeDSMaxPlugin
             return true;
         }
 
-        private string FormatFileSize(long bytes)
+        private static string FormatFileSize(long bytes)
         {
             string[] sizes = { "B", "KB", "MB", "GB", "TB" };
             int order = 0;
@@ -185,10 +339,10 @@ namespace OneDo.ThreeDSMaxPlugin
                 bytes /= 1024;
             }
 
-            return String.Format("{0:0.##} {1}", bytes, sizes[order]);
+            return string.Format("{0:0.##} {1}", bytes, sizes[order]);
         }
 
-        private string GetOutDir(string outDir, string fileName)
+        private static string GetOutDir(string outDir, string fileName)
         {
             if (string.IsNullOrEmpty(outDir)) return Path.GetDirectoryName(fileName);
             return outDir;
@@ -201,34 +355,47 @@ namespace OneDo.ThreeDSMaxPlugin
         /// <param name="yes"></param>
         /// <param name="outDir"></param>
         /// <param name="softLink"></param>
-        private void ArchiveMaxFile(string maxFileFullName, bool yes, string outDir, bool softLink)
+        private static void ArchiveMaxFile(MaxFile maxFile, bool yes, string outDir, bool softLink, bool reverseLink)
         {
+            string maxFileFullName = maxFile.MaxPath;
+
             var actualOutDir = GetOutDir(outDir, maxFileFullName);
             var relativeDisplayName = Path.GetRelativePath(actualOutDir, maxFileFullName);
 
-            AnsiConsole.MarkupLine($"解析文件资源：{relativeDisplayName}");
+            AnsiConsole.MarkupLine($"正在解析文件资源：{relativeDisplayName}");
+            maxFile.FileAssets = GetMapFileNames(maxFileFullName);
 
-            List<string> mapFiles = GetMapFileNames(maxFileFullName);
-
-            AnsiConsole.MarkupLine($"解析文件资源 [springgreen1]完成[/]");
+            AnsiConsole.MarkupLine($"文件资源解析 [springgreen1]完成[/]");
 
             // 新建 maps 文件夹
             Directory.CreateDirectory(Path.Combine(actualOutDir, "maps"));
 
             // 复制 max 文件
             var targetMaxPath = Path.Combine(actualOutDir, Path.GetFileName(maxFileFullName));
-            CopyOrSoftlinkFile(maxFileFullName, targetMaxPath, softLink);
+            CopyOrSoftlinkFile(maxFileFullName, targetMaxPath, softLink, reverseLink);
 
-            // 复制 jpg 图片
-            var thumbnailJpg = Regex.Replace(maxFileFullName, @"\.max$", @".jpg");
-            if (File.Exists(thumbnailJpg))
+            // 图片后缀
+            List<string> imageExtensions = new List<string>()
             {
-                var targetThumbnailJpg = Path.Combine(actualOutDir, Path.GetFileName(thumbnailJpg));
-                CopyOrSoftlinkFile(thumbnailJpg, targetThumbnailJpg, softLink);
+                ".jpg",
+                ".png",
+                ".jpeg"
+            };
+
+            // 判断是否有缩略图
+            List<string> thubnailImages = imageExtensions.ConvertAll(x => Path.ChangeExtension(maxFileFullName, x));
+            foreach (var thubnailImage in thubnailImages)
+            {
+                if (File.Exists(thubnailImage))
+                {
+                    var targetThumbnailJpg = Path.Combine(actualOutDir, Path.GetFileName(thubnailImage));
+                    CopyOrSoftlinkFile(thubnailImage, targetThumbnailJpg, softLink, reverseLink);
+                    maxFile.ThubnailPath = thubnailImage;
+                }
             }
 
             // 复制 map 文件
-            foreach (var mapFileName in mapFiles)
+            foreach (var mapFileName in maxFile.FileAssets)
             {
                 // 生成目标路径
                 var targetMapFile = Path.Combine(actualOutDir, "maps", mapFileName);
@@ -239,6 +406,7 @@ namespace OneDo.ThreeDSMaxPlugin
                     var findedMap = EverythingSDK.SearchOne($"*{mapFileName}");
                     if (findedMap == null)
                     {
+                        maxFile.LostAssets.Add(mapFileName);
                         AnsiConsole.MarkupLine($"[red]{mapFileName} 材质已丢失[/]");
                         continue;
                     }
@@ -247,13 +415,13 @@ namespace OneDo.ThreeDSMaxPlugin
                 }
 
                 // 开始复制文件
-                CopyOrSoftlinkFile(sourceMapFile, targetMapFile, softLink);
+                CopyOrSoftlinkFile(sourceMapFile, targetMapFile, softLink, reverseLink);
             }
 
-            AnsiConsole.MarkupLine($"{relativeDisplayName} [springgreen1]完成[/]");
+            AnsiConsole.MarkupLine($"{relativeDisplayName} 归档 [springgreen1]完成[/]");
         }
 
-        private List<string> GetMapFileNames(string maxFileFullName)
+        private static List<string> GetMapFileNames(string maxFileFullName)
         {
             CompoundFile cf = new(maxFileFullName);
             //cf.RootStorage.VisitEntries(item =>
@@ -311,7 +479,7 @@ namespace OneDo.ThreeDSMaxPlugin
         /// <param name="target"></param>
         /// <param name="softLink"></param>
         /// <returns></returns>
-        private bool CopyOrSoftlinkFile(string source, string target, bool softLink)
+        private static bool CopyOrSoftlinkFile(string source, string target, bool softLink, bool reverseLink)
         {
             if (File.Exists(target))
             {
@@ -320,8 +488,7 @@ namespace OneDo.ThreeDSMaxPlugin
 
             if (softLink)
             {
-                CreateSymbolicLink(source, target);
-                return true;
+                return CreateSymbolicLink(source, target, reverseLink);
             }
 
             // 复制到目标位置
@@ -335,31 +502,67 @@ namespace OneDo.ThreeDSMaxPlugin
         /// </summary>
         /// <param name="sourceFilePath"></param>
         /// <param name="symbolicLinkPath"></param>
-        private void CreateSymbolicLink(string sourceFilePath, string symbolicLinkPath)
+        private static bool CreateSymbolicLink(string sourceFilePath, string symbolicLinkPath, bool reverseLink)
         {
             try
             {
-                // 使用 CreateSymbolicLink 方法创建软链接
-                if (!File.Exists(symbolicLinkPath))
+                if (File.Exists(symbolicLinkPath)) return true;
+
+                // 如果是反向链接，先将文件移动到输出目录
+                if (reverseLink)
                 {
-                    // 参数 "file" 表示创建文件软链接
-                    // 参数 "targetPath" 是软链接的目标文件路径
-                    File.CreateSymbolicLink(symbolicLinkPath, sourceFilePath);
-                    AnsiConsole.MarkupLine("软链接创建成功！");
+                    File.Move(sourceFilePath, symbolicLinkPath);
+                    (symbolicLinkPath, sourceFilePath) = (sourceFilePath, symbolicLinkPath);
                 }
-                else
-                {
-                    AnsiConsole.MarkupLine("软链接已经存在。");
-                }
+
+                // 第一个是软链路径，第二个是原始文件路径
+                File.CreateSymbolicLink(symbolicLinkPath, sourceFilePath);
+                return true;
             }
             catch (UnauthorizedAccessException ex)
             {
                 AnsiConsole.MarkupLine($"[red]创建软链接失败：{ex.Message}[/]");
+                return false;
             }
             catch (IOException ex)
             {
                 Console.WriteLine($"创建软链接失败：{ex.Message}");
+                return false;
             }
+        }
+
+        /// <summary>
+        /// 确认 max file 文件数量
+        /// </summary>
+        /// <returns></returns>
+        private static void ShowArchiveStatus(List<MaxFile> files)
+        {
+            AnsiConsole.WriteLine();
+            // 显示归档结果
+            AnsiConsole.MarkupLine($"[springgreen1]归档成功！共计 {files.Count} 项：[/]");
+            AnsiConsole.WriteLine();
+
+            // 向用户展示数据
+            JsonArray showResults = new JsonArray();
+            foreach (var file in files)
+            {
+                showResults.Add(new JsonObject()
+                {
+                    { "fileName",file.MaxPath},
+                    { "assetsCount",file.FileAssets.Count},
+                    { "lostAssetsCount",string.Join(";",file.LostAssets)},
+                    { "thubnail",string.IsNullOrEmpty(file.ThubnailPath)?"-":"有"}
+                });
+            }
+            var listShow = new ListPluginConfs(showResults, new List<FieldMapper>()
+            {
+                new FieldMapper("fileName","文件名"),
+                new FieldMapper("assetsCount","资源文件数量"),
+                new FieldMapper("lostAssetsCount","已丢失"),
+                new FieldMapper("thubnail","缩略图")
+            });
+            listShow.Show();
+            AnsiConsole.WriteLine();
         }
     }
 }
