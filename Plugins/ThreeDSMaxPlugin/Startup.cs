@@ -200,7 +200,7 @@ namespace OneDo.ThreeDSMaxPlugin
                 {
                     // 说明是目录，读取目录下所有 .max 文件
                     var maxFiles = Directory.GetFiles(path, "*.max", SearchOption.AllDirectories);
-                    var fullNames = maxFiles.ToList().ConvertAll(x=> Path.GetFullPath(x));
+                    var fullNames = maxFiles.ToList().ConvertAll(x => Path.GetFullPath(x));
                     fileNames.AddRange(fullNames);
                     continue;
                 }
@@ -423,17 +423,10 @@ namespace OneDo.ThreeDSMaxPlugin
 
         private static List<string> GetMapFileNames(string maxFileFullName)
         {
-            CompoundFile cf = new(maxFileFullName);
-            //cf.RootStorage.VisitEntries(item =>
-            //{
-            //    var name = item.Name;
-            //    Console.WriteLine($"entry:{name}-{item.Size}-{item.IsStream}-{item.IsStorage}-{item.CLSID}");
-            //}, true);
-            // 贴图在 FileAssetMetaData2 流中
-            var sceneStrem = cf.RootStorage.GetStream("FileAssetMetaData2");
-            var bytes = new byte[sceneStrem.Size];
-            sceneStrem.Read(bytes, 0, (int)sceneStrem.Size);
-            cf.Close();
+            if(!GetAssetsBytes(maxFileFullName,out var bytes))
+            {
+                return new List<string>();
+            }
 
             // 提取文件名称
             // 6000 后面的为文件名
@@ -470,6 +463,37 @@ namespace OneDo.ThreeDSMaxPlugin
             }
 
             return fileNames;
+        }
+
+        private static bool GetAssetsBytes(string maxFileFullName,out byte[] bytes)
+        {
+            CompoundFile cf = new(maxFileFullName);
+            //cf.RootStorage.VisitEntries(item =>
+            //{
+            //    var name = item.Name;
+            //    Console.WriteLine($"entry:{name}-{item.Size}-{item.IsStream}-{item.IsStorage}-{item.CLSID}");
+            //}, true);
+
+            // 贴图在 FileAssetMetaData2 流中
+            List<string> streamNames = new List<string>()
+            {
+                "FileAssetMetaData2",
+                "FileAssetMetaData3"
+            };
+            foreach(var name in streamNames)
+            {
+                if (cf.RootStorage.TryGetStream(name, out var stream))
+                {
+                    bytes = new byte[stream.Size];
+                    stream.Read(bytes, 0, (int)stream.Size);
+                    cf.Close();
+                    return true;
+                }
+            }
+
+            bytes = null;
+            AnsiConsole.MarkupLine($"[red]无法从文件 {maxFileFullName} 提取贴图，请联系作者(https://galensgan.gitee.io/)进行兼容[/]");
+            return false;
         }
 
         /// <summary>

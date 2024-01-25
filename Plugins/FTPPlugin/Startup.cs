@@ -103,7 +103,7 @@ namespace OneDo.FTPPlugin
 
                 // 计算花费的时间，单位秒
                 var timespan = DateTime.Now - startDate;
-                AnsiConsole.MarkupLine($"[springgreen1]上传成功! 耗时 {timespan.Seconds} 秒[/]");
+                AnsiConsole.MarkupLine($"[springgreen1]上传成功! 耗时[/][blue] {timespan:hh\\:mm\\:ss} [/]");
             }, ftpOption);
 
             // 展示可用的 ftp 配置
