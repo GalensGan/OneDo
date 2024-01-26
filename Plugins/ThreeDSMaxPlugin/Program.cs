@@ -26,10 +26,9 @@ void SaveStream(CompoundFile cf, string name)
     File.WriteAllBytes(path, bytes);
 }
 
-// var info= cf.RootStorage.GetStream("Config");
+// var info= cf.RootStorage.GetStream("FileAssetMetaData3");
 
-SaveStream(cf, "Config");
-SaveStream(cf, "Scene");
+SaveStream(cf, "FileAssetMetaData2");
 
 cf.Close();
 Console.ReadKey();

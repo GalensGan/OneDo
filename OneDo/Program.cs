@@ -26,7 +26,7 @@ using System.Xml.Linq;
 
 // 获取程序执行目录
 var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-var pluginPath = Path.Combine(currentDirectory, "Plugins");
+var pluginPath = Path.Combine(currentDirectory, "plugins");
 
 // 判断目录是否存在，不存在，则无法启动程序
 if (!Directory.Exists(pluginPath))
@@ -40,7 +40,7 @@ var allPluginDllFullNames = Directory.GetFiles(pluginPath, "*Plugin.dll", Search
 var dllNames = allPluginDllFullNames.Select(x => Path.GetFileNameWithoutExtension(x));
 
 // 读取用户配置文件 json 格式
-var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OneDo", "config.json");
+var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "onedo", "config.json");
 // 如果不存在，则新建一个配置
 if (!File.Exists(configPath))
 {

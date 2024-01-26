@@ -2,8 +2,8 @@
   "profiles": {
     "OneDo": {
       "commandName": "Project",
-      "commandLineArgs": "max archive -o test -s",
-      "workingDirectory": "C:\\Users\\galens\\Desktop\\新建文件夹2"
+      "commandLineArgs": " onedo max stream dump -f C:\\Users\\galens\\Desktop\\temp2\\test2.max -n Scene",
+      "workingDirectory": "C:\\Users\\galens\\Desktop\\temp2"
     }
   }
 }
