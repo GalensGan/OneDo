@@ -24,7 +24,7 @@ onedo addin new wpf -n myWpfAddin -p ord
 
 ## 插件介绍
 
-目前 OneDo 共有 7 个插件，下面逐一进行介绍。
+目前 OneDo 共有 9 个插件，下面逐一进行介绍。
 
 | 插件名称                  | 说明                                                         | 备注                     |
 | ------------------------- | ------------------------------------------------------------ | ------------------------ |
@@ -36,7 +36,7 @@ onedo addin new wpf -n myWpfAddin -p ord
 | MSAddinCLIPlugin          | 支持新建 Addin 项目，可以快速管理项目的参考，管理 addin 中的 keyin |                          |
 | WakeOnLanPlugin           | 支持配置远程网络唤醒                                         |                          |
 | WatermarkPlugin           | 批量给图片添加图片或文字水印                                 |                          |
-| ThreeDSMaxPlugin          | 不需要启动 3ds max 即可从电脑中查找 max 文件的外部依赖，并归档到当前 max 下。 |                          |
+| ThreeDSMaxPlugin          | 不需要启动 3ds max 即可从电脑中查找 max 文件的外部依赖，并归档到当前 max 文件路径下。 |                          |
 
 ### SystemPlugin
 
@@ -58,6 +58,10 @@ onedo addin new wpf -n myWpfAddin -p ord
 ![image-20231224113228253](https://obs.uamazing.cn:52443/public/files/images/image-20231224113228253.png)
 
 ### FTPPlugin
+
+<video id="video" controls="" preload="none" poster="https://obs.uamazing.cn:52443/public/files/images/image-20240127230938331.png">
+      <source id="mp4" src="https://obs.uamazing.cn:52443/public/files/video/onedo-ftp.mp4" type="video/mp4" />
+</video>
 
 **命令**：
 
@@ -139,6 +143,24 @@ ftp 的配置需定义到 `ftps` 的数组中，其结构如下：
 ![image-20231224113823814](https://obs.uamazing.cn:52443/public/files/images/image-20231224113823814.png)
 
 
+
+### MSAddinCLIPlugin
+
+<video id="video" controls="" preload="none" poster="https://obs.uamazing.cn:52443/public/files/images/image-20240127231135395.png">
+      <source id="mp4" src="https://obs.uamazing.cn:52443/public/files/video/onedo-addinCli.mp4" type="video/mp4" />
+</video>
+
+### WatermarkPlugin
+
+<video id="video" controls="" preload="none" poster="https://obs.uamazing.cn:52443/public/files/images/image-20240127231135395.png">
+      <source id="mp4" src="https://obs.uamazing.cn:52443/public/files/video/onedo-watermark.mp4" />
+</video>
+
+### ThreeDSMaxPlugin
+
+<video id="video" controls="" preload="none" poster="https://obs.uamazing.cn:52443/public/files/images/image-20240127231135395.png">
+      <source id="mp4" src="https://obs.uamazing.cn:52443/public/files/video/onedo-max.mp4" />
+</video>
 
 ## 安装使用
 
