@@ -40,6 +40,7 @@ var allPluginDllFullNames = Directory.GetFiles(pluginPath, "*Plugin.dll", Search
 var dllNames = allPluginDllFullNames.Select(x => Path.GetFileNameWithoutExtension(x));
 
 // 读取用户配置文件 json 格式
+// Environment.SpecialFolder.ApplicationData 对应 linux 中的 ~/.config
 var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "onedo", "config.json");
 // 如果不存在，则新建一个配置
 if (!File.Exists(configPath))

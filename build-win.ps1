@@ -58,6 +58,8 @@ CopyFilesToDir -sourceDir "./build/temp/SystemPlugin" -files $systemPluginFiles 
 # ShellPlugin.dll
 $shellPluginFiles = @("ShellPlugin.dll")
 CopyFilesToDir -sourceDir "./build/temp/ShellPlugin" -files $shellPluginFiles -dir "./build/win/plugins"
+# 创建 shells 目录
+New-Item -Path "./build/win/shells" -ItemType Directory -Force
 
 # ManagedAssemblyListPlugin.dll
 $managedAssemblyListPluginFiles = @("ManagedAssemblyListPlugin.dll")
