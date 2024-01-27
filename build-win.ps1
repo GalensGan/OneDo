@@ -47,9 +47,9 @@ $onedoFiles = @("onedo.deps.json", "onedo.dll", "onedo.exe", "onedo.runtimeconfi
 CopyFilesToDir -sourceDir "./build/temp/OneDo" -files $onedoFiles -dir "./build/win"
 
 # 复制 plugin
-# WakeOnLANPlugin
-$wolFiles = @("WakeOnLANPlugin.dll")
-CopyFilesToDir -sourceDir "./build/temp/WakeOnLANPlugin" -files $wolFiles -dir "./build/win/plugins"
+# WakeOnLanPlugin
+$wolFiles = @("WakeOnLanPlugin.dll")
+CopyFilesToDir -sourceDir "./build/temp/WakeOnLanPlugin" -files $wolFiles -dir "./build/win/plugins"
 
 # SystemPlugin.dll
 $systemPluginFiles = @("SystemPlugin.dll")
@@ -77,8 +77,8 @@ New-Item -Path "./build/win/plugins/minio/Shells" -ItemType Directory -Force
 Copy-Item -Path "./Plugins/MinioPlugin/Shells/saveImageFromClipboard.ps1" -Destination "./build/win/plugins/minio/Shells" -Force
 
 # FTP
-$ftpFiles = @("FluentFTP.dll", "FtpPlugin.dll")
-CopyFilesToDir -sourceDir "./build/temp/FtpPlugin" -files $ftpFiles -dir "./build/win/plugins/ftp"
+$ftpFiles = @("FluentFTP.dll", "FTPPlugin.dll")
+CopyFilesToDir -sourceDir "./build/temp/FTPPlugin" -files $ftpFiles -dir "./build/win/plugins/ftp"
 
 # Addin
 $addinFiles = @(".addinPlugin.json", "MSAddinCLIPlugin.dll")

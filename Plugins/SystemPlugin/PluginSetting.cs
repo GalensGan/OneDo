@@ -39,9 +39,8 @@ namespace OneDo.SystemPlugin
                 {
                     // 找到了之后，移除指定名称
                     var disabledPlugins = disabledPluginsNode.AsArray();
-                    var usefullNodes = disabledPlugins.Select(x => x.GetValue<string>() == pluginName);
-                    disabledPlugins.Clear();
-                    foreach (var node in usefullNodes) disabledPlugins.Add(node);
+                    var enableNodes = disabledPlugins.Where(x => pluginName.Equals(x.GetValue<string>(),StringComparison.CurrentCultureIgnoreCase)).ToList();
+                    foreach (var node in enableNodes) disabledPlugins.Remove(node);
 
                     // 重新保存到文件中
                     OverrideConfigFile(config);
@@ -199,7 +198,7 @@ namespace OneDo.SystemPlugin
         {
             var files = GetPluginFiles();
             var names = files.ConvertAll(x => Path.GetFileNameWithoutExtension(x));
-            if (files.Any(x => Path.GetFileNameWithoutExtension(x).Equals(pluginName,StringComparison.OrdinalIgnoreCase)))
+            if (files.Any(x => Path.GetFileNameWithoutExtension(x).Equals(pluginName, StringComparison.CurrentCultureIgnoreCase)))
             {
                 return true;
             }

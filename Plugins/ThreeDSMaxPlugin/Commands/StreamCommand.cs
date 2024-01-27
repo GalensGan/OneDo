@@ -181,7 +181,7 @@ namespace OneDo.ThreeDSMaxPlugin.Commands
         public static bool ValidateStreamName(CompoundFile cf, string streamName)
         {
             List<CFItem> cfItems = GetCFItems(cf);
-            var cfItem = cfItems.Find(x => x.Name.Equals(streamName, StringComparison.OrdinalIgnoreCase));
+            var cfItem = cfItems.Find(x => x.Name.Equals(streamName, StringComparison.CurrentCultureIgnoreCase));
             if (cfItem == null)
             {
                 AnsiConsole.MarkupLine($"[red]文件中不存在流 {streamName}[/]");

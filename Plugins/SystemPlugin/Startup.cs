@@ -94,7 +94,7 @@ namespace OneDo.SystemPlugin
             });
 
             // 打开配置
-            var configCommand = new Command("conf", "打开 OneDo 相关的目录");
+            var configCommand = new Command("config", "打开 OneDo 相关的目录");
             rootCommand.Add(configCommand);
 
             // 打开安装目录
@@ -118,7 +118,7 @@ namespace OneDo.SystemPlugin
                     UseShellExecute = true
                 };
                 Process.Start(psi);
-            });            
+            });     
         }
     }
 }
