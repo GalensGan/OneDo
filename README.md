@@ -172,7 +172,6 @@ ftp 的配置需定义到 `ftps` 的数组中，其结构如下：
    scoop add bucket uamazing https://gitee.com/galensgan/galens-bucket.git
    scoop install onedo
    ```
-```
    
 2. 直接下载安装包使用
 
@@ -186,5 +185,7 @@ ftp 的配置需定义到 `ftps` 的数组中，其结构如下：
 
 ### 插件位置
 
+
+```
 
 ```
