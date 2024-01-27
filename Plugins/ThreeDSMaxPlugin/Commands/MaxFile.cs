@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OneDo.ThreeDSMaxPlugin
+namespace OneDo.ThreeDSMaxPlugin.Commands
 {
     internal class MaxFile
     {
@@ -22,7 +22,7 @@ namespace OneDo.ThreeDSMaxPlugin
         /// 文件资源：贴图
         /// 全路径
         /// </summary>
-        public List<string> FileAssets { get; set; }=new List<string>();
+        public List<string> FileAssets { get; set; } = new List<string>();
 
         /// <summary>
         /// 丢失的资源

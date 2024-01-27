@@ -31,7 +31,8 @@ namespace OneDo.ThreeDSMaxPlugin
             List<IMaxCommand> commands = new()
             {
                 new ArchiveCommand(),
-                new StreamCommand()
+                new StreamCommand(),
+                new PropsCommand(),
             };
             commands.ForEach(x => x.RegisterCommand(maxCommand, config));
         }

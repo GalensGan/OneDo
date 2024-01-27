@@ -2,7 +2,7 @@
   "profiles": {
     "OneDo": {
       "commandName": "Project",
-      "commandLineArgs": " onedo max stream dump -f C:\\Users\\galens\\Desktop\\temp2\\test2.max -n Scene",
+      "commandLineArgs": " onedo max stream parse -n Scene -f C:\\Users\\galens\\Desktop\\temp2\\test2.max",
       "workingDirectory": "C:\\Users\\galens\\Desktop\\temp2"
     }
   }

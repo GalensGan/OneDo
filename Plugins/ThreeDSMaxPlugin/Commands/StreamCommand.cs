@@ -1,4 +1,5 @@
-﻿using OneDo.Utils;
+﻿using OneDo.ThreeDSMaxPlugin.Max.Storage;
+using OneDo.Utils;
 using OpenMcdf;
 using Spectre.Console;
 using System;
@@ -7,8 +8,10 @@ using System.CommandLine;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace OneDo.ThreeDSMaxPlugin.Commands
 {
@@ -75,6 +78,7 @@ namespace OneDo.ThreeDSMaxPlugin.Commands
             }, fileOption);
             #endregion
 
+            #region Dump
             var dumpCommand = new Command("dump", "dump 流");
             streamCommand.Add(dumpCommand);
 
@@ -95,13 +99,7 @@ namespace OneDo.ThreeDSMaxPlugin.Commands
 
                 // 判断流是否存在
                 using CompoundFile cf = new(filePath);
-                List<CFItem> cfItems = GetCFItems(cf);
-                var cfItem = cfItems.Find(x => x.Name.ToLower() == streamName.ToLower());
-                if (cfItem == null)
-                {
-                    AnsiConsole.MarkupLine($"[red]文件 {filePath} 中不存在流 {streamName}[/]");
-                    return;
-                }
+                if (!ValidateStreamName(cf, streamName)) return;
 
                 // 读取流
                 CFStream stream = cf.RootStorage.GetStream(streamName);
@@ -110,6 +108,31 @@ namespace OneDo.ThreeDSMaxPlugin.Commands
                 SaveStream(outFile, filePath, streamName, bytes);
 
             }, fileOption, streamNameOption, outOption);
+            #endregion
+
+            #region Parse
+            var parseCommand = new Command("parse", "解析 max 文件");
+            streamCommand.Add(parseCommand);
+
+            parseCommand.Add(fileOption);
+            parseCommand.Add(streamNameOption);
+
+            parseCommand.SetHandler((filePath, streamName) =>
+            {
+                // 判断文件是否存在
+                if (!ValidateFilePath(filePath)) return;
+
+                // 判断流是否存在
+                using CompoundFile cf = new(filePath);
+                if (!ValidateStreamName(cf, streamName)) return;
+
+                List<StorageContainer> containers = BinaryReaderHelper.StorageParser(cf, streamName);
+
+                // 使用 Json 序列化 List<StorageContainer>
+                string jsonString = JsonSerializer.Serialize(containers, Max.Utils.JsonSerializerOptions);
+                AnsiConsole.WriteLine(jsonString);
+            }, fileOption, streamNameOption);
+            #endregion
         }
 
         /// <summary>
@@ -117,7 +140,7 @@ namespace OneDo.ThreeDSMaxPlugin.Commands
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        private bool ValidateFilePath(string filePath)
+        public static bool ValidateFilePath(string filePath)
         {
             if (!File.Exists(filePath))
             {
@@ -133,7 +156,12 @@ namespace OneDo.ThreeDSMaxPlugin.Commands
             return true;
         }
 
-        private List<CFItem> GetCFItems(CompoundFile cf)
+        /// <summary>
+        /// 获取CFItem
+        /// </summary>
+        /// <param name="cf"></param>
+        /// <returns></returns>
+        public static List<CFItem> GetCFItems(CompoundFile cf)
         {
             List<CFItem> cFItems = [];
             cf.RootStorage.VisitEntries(cfItem =>
@@ -144,6 +172,24 @@ namespace OneDo.ThreeDSMaxPlugin.Commands
             return cFItems;
         }
 
+        /// <summary>
+        /// 验证是否存在 StreamName
+        /// </summary>
+        /// <param name="cf"></param>
+        /// <param name="streamName"></param>
+        /// <returns></returns>
+        public static bool ValidateStreamName(CompoundFile cf, string streamName)
+        {
+            List<CFItem> cfItems = GetCFItems(cf);
+            var cfItem = cfItems.Find(x => x.Name.Equals(streamName, StringComparison.OrdinalIgnoreCase));
+            if (cfItem == null)
+            {
+                AnsiConsole.MarkupLine($"[red]文件中不存在流 {streamName}[/]");
+                return false;
+            }
+
+            return true;
+        }
         /// <summary>
         /// 保存流到文件
         /// </summary>

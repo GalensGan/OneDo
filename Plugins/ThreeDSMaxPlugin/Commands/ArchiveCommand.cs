@@ -1,4 +1,5 @@
-﻿using OneDo.Utils;
+﻿using OneDo.ThreeDSMaxPlugin.Max.SummaryInfo;
+using OneDo.Utils;
 using OpenMcdf;
 using Spectre.Console;
 using System;
@@ -423,31 +424,37 @@ namespace OneDo.ThreeDSMaxPlugin.Commands
         /// <returns></returns>
         private static List<string> GetAssetFiles(string maxFileFullName)
         {
-            CompoundFile cf = new(maxFileFullName);
+            
             // 不同的版本，保存的资源文件格式不一样，需要进行适配
             List<string> entryNames = new List<string>();
-            cf.RootStorage.VisitEntries(item =>
-            {
-                entryNames.Add(item.Name);
-            }, true);
-            // 2010-2013 以前的版本，资源文件保存在 FileAssetMetaData2 中
-            if (entryNames.Contains("FileAssetMetaData2"))
-            {
-                return GetMapFileNamesFrom2010To2013(cf);
-            }
 
-            // 2011 以后的版本，资源文件保存在 FileAssetMetaData3 中
-            if (entryNames.Contains("FileAssetMetaData3"))
-            {
-                return GetMapFileNamesSince2013(cf);
-            }
+            #region 应该要从 FileAssetMetaDataX 中读取，此处取巧，直接从 \u0005DocumentSummaryInformation 中读取;后期有精力后，再进行优化
+            //CompoundFile cf = new(maxFileFullName);
+            //cf.RootStorage.VisitEntries(item =>
+            //{
+            //    entryNames.Add(item.Name);
+            //}, true);
+            //// 2010-2013 以前的版本，资源文件保存在 FileAssetMetaData2 中
+            //if (entryNames.Contains("FileAssetMetaData2"))
+            //{
+            //    return GetMapFileNamesFrom2010To2013(cf);
+            //}
+            //// 2011 以后的版本，资源文件保存在 FileAssetMetaData3 中
+            //if (entryNames.Contains("FileAssetMetaData3"))
+            //{
+            //    return GetMapFileNamesSince2013(cf);
+            //}
+            //cf.Close();
+            //// 2009 的版本，暂不适配
+            #endregion
 
-
-            // 2009 的版本，暂不适配
-
+            MaxProperties properties = new MaxProperties(maxFileFullName);
+            var headerInfo = properties.GetExternalDependencies();
+            if (headerInfo != null)
+                return headerInfo.Items;
 
             AnsiConsole.MarkupLine($"[red]无法从文件 {maxFileFullName} 提取贴图，请联系作者(https://galensgan.gitee.io/)进行兼容[/]");
-            cf.Close();
+            
             return [];
         }
 

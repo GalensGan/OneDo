@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OneDo.ThreeDSMaxPlugin.Max
+namespace OneDo.ThreeDSMaxPlugin.Max.Decoders
 {
-    internal class StorageParser
+    public interface IDecoder
     {
+        object Decode(byte[] val);
     }
 }
