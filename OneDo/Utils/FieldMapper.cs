@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -51,5 +52,10 @@ namespace OneDo.Utils
         /// 格式化显示
         /// </summary>
         public Func<JsonNode, string> Formatter { get; set; }
+
+        /// <summary>
+        /// Style 格式化
+        /// </summary>
+        public Func<string, Style> StyleFormatter { get; set; }
     }
 }

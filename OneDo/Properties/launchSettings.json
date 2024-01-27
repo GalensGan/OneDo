@@ -2,7 +2,7 @@
   "profiles": {
     "OneDo": {
       "commandName": "Project",
-      "commandLineArgs": " onedo max stream parse -n Scene -f C:\\Users\\galens\\Desktop\\temp2\\test2.max",
+      "commandLineArgs": "onedo plugin enable WakeOnLanPlugin",
       "workingDirectory": "C:\\Users\\galens\\Desktop\\temp2"
     }
   }

@@ -26,15 +26,17 @@ onedo addin new wpf -n myWpfAddin -p ord
 
 目前 OneDo 共有 7 个插件，下面逐一进行介绍。
 
-| 插件名称                  | 说明                                      | 备注                     |
-| ------------------------- | ----------------------------------------- | ------------------------ |
-| SystemPlugin              | 提供插件的安装、卸载、配置等操作          | 系统必须插件，无法被禁用 |
-| FTPPlugin                 | 支持配置不同的 FTP 实现一键上传文件到 FTP |                          |
-| MinioPlugin               | 支持向 Minio 服务器中上传文件             |                          |
-| ShellPlugin               | 支持执行脚本，调用其它命令                |                          |
-| ManagedAssemblyListPlugin | 获取目录中有哪些 dll 文件是托管程序集     |                          |
-| MSAddinCLIPlugin          | 支持新建 Addin 项目，管理项目的参考       |                          |
-| WakeOnLanPlugin           | 支持配置远程网络唤醒                      |                          |
+| 插件名称                  | 说明                                                         | 备注                     |
+| ------------------------- | ------------------------------------------------------------ | ------------------------ |
+| SystemPlugin              | 提供插件的安装、卸载、配置等操作                             | 系统必须插件，无法被禁用 |
+| FTPPlugin                 | 支持配置不同的 FTP 实现一键上传文件到 FTP                    |                          |
+| MinioPlugin               | 支持向 Minio 服务器中上传文件                                |                          |
+| ShellPlugin               | 支持执行脚本，调用其它命令                                   |                          |
+| ManagedAssemblyListPlugin | 获取目录中有哪些 dll 文件是托管程序集                        |                          |
+| MSAddinCLIPlugin          | 支持新建 Addin 项目，可以快速管理项目的参考，管理 addin 中的 keyin |                          |
+| WakeOnLanPlugin           | 支持配置远程网络唤醒                                         |                          |
+| WatermarkPlugin           | 批量给图片添加图片或文字水印                                 |                          |
+| ThreeDSMaxPlugin          | 不需要启动 3ds max 即可从电脑中查找 max 文件的外部依赖，并归档到当前 max 下。 |                          |
 
 ### SystemPlugin
 
@@ -147,6 +149,7 @@ ftp 的配置需定义到 `ftps` 的数组中，其结构如下：
    ``` powershell
    scoop add bucket uamazing https://gitee.com/galensgan/galens-bucket.git
    scoop install onedo
+   ```
 ```
    
 2. 直接下载安装包使用
@@ -161,3 +164,5 @@ ftp 的配置需定义到 `ftps` 的数组中，其结构如下：
 
 ### 插件位置
 
+
+```

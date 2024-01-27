@@ -99,28 +99,29 @@ namespace OneDo.Utils
             }).ToArray());
 
             var array = _datas;
-            List<List<string>> rows = new List<List<string>>();
+            List<List<Text>> rows = new List<List<Text>>();
             foreach (var x in array)
             {
                 // 获取值
-                var row = new List<string>();
-                _fieldsMapper.ForEach(k =>
+                var row = new List<Text>();
+                _fieldsMapper.ForEach(fieldMap =>
                 {
-                    var valueNode = x[k.FieldName];
-                    if (valueNode == null) row.Add(string.Empty);
+                    var valueNode = x[fieldMap.FieldName];
+                    if (valueNode == null) row.Add(new Text(string.Empty));
                     else
                     {
                         // 如果有格式化，需要先调用
                         string nodeValue = string.Empty;
-                        if (k.Formatter != null) nodeValue = k.Formatter(valueNode);
+                        if (fieldMap.Formatter != null) nodeValue = fieldMap.Formatter(valueNode);
                         else nodeValue = valueNode.ToString();
-                        row.Add(nodeValue);
+                        var style = fieldMap.StyleFormatter?.Invoke(nodeValue);
+                        row.Add(new Text(nodeValue,style));
                     }
                 });
                 rows.Add(row);
             }
             // 按第一个值升序排列
-            rows = rows.OrderBy(x => x[0]).ToList();
+            rows = rows.OrderBy(x => x[0].ToString()).ToList();
             rows.ForEach(x => grid.AddRow(x.ToArray()));
             AnsiConsole.Write(grid);
             AnsiConsole.WriteLine();

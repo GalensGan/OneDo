@@ -1,4 +1,5 @@
 ﻿using OneDo.Plugin;
+using OneDo.Utils;
 using Spectre.Console;
 using System.CommandLine;
 using System.Reflection;
@@ -40,8 +41,8 @@ namespace OneDo.SystemPlugin
                     var disabledPlugins = disabledPluginsNode.AsArray();
                     var usefullNodes = disabledPlugins.Select(x => x.GetValue<string>() == pluginName);
                     disabledPlugins.Clear();
-                    foreach(var node in usefullNodes)disabledPlugins.Add(node);
-                    
+                    foreach (var node in usefullNodes) disabledPlugins.Add(node);
+
                     // 重新保存到文件中
                     OverrideConfigFile(config);
 
@@ -49,7 +50,7 @@ namespace OneDo.SystemPlugin
                     return;
                 }
 
-                AnsiConsole.MarkupLine($"[yellow]插件 {pluginName} 已启用[/]");
+                AnsiConsole.MarkupLine($"[springgreen1]插件 {pluginName} 已启用[/]");
             }, pluginNameArgs);
             settingCommand.Add(enableCommand);
             #endregion
@@ -120,27 +121,6 @@ namespace OneDo.SystemPlugin
                     var disabledPlugins = disabledPluginsNode.AsArray().Select(x => x.GetValue<string>());
                     pluginNames = pluginNames.Except(disabledPlugins).ToList();
                 }
-
-                var grid = new Grid();
-                // Add columns 
-                grid.AddColumn();
-                grid.AddColumn();
-                grid.AddColumn();
-                grid.AddColumn();
-                // Add header row 
-                grid.AddRow(new Text[]{
-                    new Text("名称", new Style(Color.SpringGreen1)).LeftJustified(),
-                    new Text("版本", new Style(Color.SpringGreen1)).LeftJustified(),
-                    new Text("作者", new Style(Color.SpringGreen1)).LeftJustified(),
-                    new Text("状态", new Style(Color.SpringGreen1)).LeftJustified(),
-                });
-                grid.AddRow(new Text[]{
-                    new Text("----", new Style(Color.SpringGreen1)).LeftJustified(),
-                    new Text("----", new Style(Color.SpringGreen1)).LeftJustified(),
-                    new Text("----", new Style(Color.SpringGreen1)).LeftJustified(),
-                    new Text("----", new Style(Color.SpringGreen1)).LeftJustified()
-                });
-
                 // 将名称升序排列
                 allPluginFiles.Sort();
 
@@ -148,17 +128,39 @@ namespace OneDo.SystemPlugin
                 var assemblies = allPluginFiles.ConvertAll(x =>
                 {
                     // 从单个文件加载程序集
-                    return Assembly.LoadFile(x);                   
+                    return Assembly.LoadFile(x);
                 });
+                JsonArray jsonDatas = new JsonArray();
                 foreach (var assembly in assemblies)
                 {
                     // 获取程序的版本与作者信息
-                    var assemblyNameInfo = assembly.GetName();                  
+                    var assemblyNameInfo = assembly.GetName();
                     var author = assembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company;
-                    grid.AddRow(assemblyNameInfo.Name, assemblyNameInfo.Version.ToString(), author,pluginNames.Contains(assemblyNameInfo.Name)?"启用":"禁用");
+                    jsonDatas.Add(new JsonObject()
+                    {
+                        { "name", assemblyNameInfo.Name },
+                        { "version" , assemblyNameInfo.Version.ToString()},
+                        { "author",author},
+                        {"status", pluginNames.Contains(assemblyNameInfo.Name) ? "启用" : "禁用"}
+                    });
                 }
 
-                AnsiConsole.Write(grid);
+                var list = new ListPluginConfs(jsonDatas, new List<FieldMapper>()
+                {
+                    new("name","名称"),
+                    new("version","版本号"),
+                    new("author","作者"),
+                    new("status", "状态")
+                    {
+                        StyleFormatter = value =>
+                        {
+                            if(value=="启用")return new Style(Color.SpringGreen1);
+                            return new Style(Color.Red);
+                        }
+                    }
+                });
+                list.Show();
+
                 AnsiConsole.WriteLine();
             });
             #endregion
@@ -196,7 +198,8 @@ namespace OneDo.SystemPlugin
         private bool ExistPlugin(string pluginName)
         {
             var files = GetPluginFiles();
-            if (files.Any(x => Path.GetFileNameWithoutExtension(x) == pluginName))
+            var names = files.ConvertAll(x => Path.GetFileNameWithoutExtension(x));
+            if (files.Any(x => Path.GetFileNameWithoutExtension(x).Equals(pluginName,StringComparison.OrdinalIgnoreCase)))
             {
                 return true;
             }
@@ -206,7 +209,7 @@ namespace OneDo.SystemPlugin
 
         private List<string> GetPluginFiles()
         {
-            string executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string executingPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             var files = Directory.GetFiles(executingPath, $"*Plugin.dll", SearchOption.AllDirectories);
             return files.ToList();
         }
