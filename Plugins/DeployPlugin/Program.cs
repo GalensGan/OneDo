@@ -1,4 +1,4 @@
-﻿namespace SharpFileServerPlugin
+﻿namespace DeployPlugin
 {
     internal class Program
     {

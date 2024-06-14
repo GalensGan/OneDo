@@ -2,8 +2,8 @@
   "profiles": {
     "OneDo": {
       "commandName": "Project",
-      "commandLineArgs": "onedo plugin enable WakeOnLanPlugin",
-      "workingDirectory": "C:\\Users\\galens\\Desktop\\temp2"
+      "commandLineArgs": "minio img -p https://obs.uamazing.cn:52443/public/files/images/Snipaste_2024-06-13_13-22-11.jpg https://obs.uamazing.cn:52443/public/files/images/Snipaste_2024-06-13_13-22-11.jpg",
+      "workingDirectory": "C:\\Users\\galens\\Desktop\\temp"
     }
   }
 }

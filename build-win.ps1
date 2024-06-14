@@ -70,7 +70,7 @@ $watermarkFiles = @("SixLabors.Fonts.dll", "SixLabors.ImageSharp.dll", "SixLabor
 CopyFilesToDir -sourceDir "./build/temp/WatermarkPlugin" -files $watermarkFiles -dir "./build/win/plugins/watermark"
 
 # MinIO
-$minioFiles = @("Minio.dll", "MinioPlugin.dll", "System.Net.Http.Formatting.dll")
+$minioFiles = @("Minio.dll", "MinioPlugin.dll")
 CopyFilesToDir -sourceDir "./build/temp/MinioPlugin" -files $minioFiles -dir "./build/win/plugins/minio"
 # 复制 MinIO 中的 Shell
 New-Item -Path "./build/win/plugins/minio/Shells" -ItemType Directory -Force
@@ -92,7 +92,12 @@ CopyFilesToDir -sourceDir "./build/temp/ThreeDSMaxPlugin" -files $threeDsMaxFile
 # 复制 Everything64.dll
 Copy-Item -Path "./Plugins/ThreeDSMaxPlugin/dll/Everything64.dll" -Destination "./build/win/plugins/3dsmax" -Force
 
+# 打包程序
+
+# 读取主程序的版本号
+$version = (Get-Item -Path "./build/temp/OneDo/onedo.dll").VersionInfo.FileVersion
+$zipDist = "./build/onedo-$version-win.7z"
+7z a -t7z $zipDist "./build/win/*"
+
 # 打印结果
-Write-Host "Build success!"
-# 不关闭窗口
-Read-Host -Prompt "Press Enter to exit"
+Write-Host "Build success! $zipDist" -ForegroundColor Green

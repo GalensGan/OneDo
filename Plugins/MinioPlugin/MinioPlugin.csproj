@@ -26,13 +26,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Reference Include="System.Net.Http.Formatting">
-	    <HintPath>Libs\System.Net.Http.Formatting.dll</HintPath>
-	    <Private>True</Private>
-	  </Reference>
-	</ItemGroup>
-
-	<ItemGroup>
 	  <Folder Include="Shells\" />
 	</ItemGroup>
 

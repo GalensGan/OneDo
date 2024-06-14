@@ -30,7 +30,7 @@ onedo addin new wpf -n myWpfAddin -p ord
 4. 快速新建 addin 项目，快捷管理项目的参考，keyin
 5. 远程网络唤醒
 6. 批量为图片添加文字或图片水印
-7. 不需要 3D Studio max 即可批量归档 max 文件中的贴图
+7. 不需要 3D Studio max 即可从Windows各个角落批量归档 max 文件中的贴图
 
 > 功能为插件式，若不需要某些功能禁用或者删除即可
 

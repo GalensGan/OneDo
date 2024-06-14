@@ -1,5 +1,6 @@
 ﻿using Minio;
 using Minio.DataModel.Args;
+using Minio.Exceptions;
 using MinioPlugin;
 using OneDo.MinioPlugin.Http;
 using OneDo.Plugin;
@@ -9,7 +10,6 @@ using System.CommandLine;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Http.Handlers;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
@@ -29,15 +29,18 @@ namespace OneDo.MinioPlugin
             var nameArg = new Argument<string>("config-name", "minio 配置名称");
             minioCommand.Add(nameArg);
 
-            var pathOption = new Option<string>("--path", "指定上传文件的路径(本地或网络)");
-            pathOption.AddAlias("-p");
-            minioCommand.Add(pathOption);
+            var pathsOption = new Option<List<string>>("--paths", "指定上传文件的路径(本地或网络)");
+            pathsOption.AddAlias("-p");
+            pathsOption.AllowMultipleArgumentsPerToken = true;
+            minioCommand.Add(pathsOption);
 
-            var clipboardOption = new Option<bool>("--clipboard-image", "从剪切板中上传图片");
-            clipboardOption.IsHidden = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            var clipboardOption = new Option<bool>("--clipboard-image", "从剪切板中上传图片")
+            {
+                IsHidden = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            };
             minioCommand.Add(clipboardOption);
 
-            minioCommand.SetHandler((name, path, isFromCb) =>
+            minioCommand.SetHandler(async (name, paths, isFromCb) =>
             {
                 if (string.IsNullOrEmpty(name))
                 {
@@ -45,7 +48,7 @@ namespace OneDo.MinioPlugin
                     return;
                 }
 
-                if (string.IsNullOrEmpty(path) && !isFromCb)
+                if(paths.ToList().All(x=>string.IsNullOrEmpty(x)) && !isFromCb)               
                 {
                     AnsiConsole.MarkupLine("[red]请指定上传文件位置[/]");
                     return;
@@ -63,32 +66,34 @@ namespace OneDo.MinioPlugin
                 }
 
                 // 利用 httpclient 上传                
-                var httpClient = ProgressHttpClient.Create();
-                httpClient.Timeout = TimeSpan.FromMinutes(60);
+                var httpClient = new HttpClient
+                {
+                    Timeout = TimeSpan.FromMinutes(60)
+                };
 
                 // 获取 minIO client
                 var minioClient = new MinioClient()
-               .WithEndpoint(minioModel.Endpoint)
-               .WithSSL(minioModel.UseSSL)
-               .WithSessionToken(minioModel.SessionToken)
-               .WithRegion(minioModel.Region)
-               .WithCredentials(minioModel.AccessKey, minioModel.SecretKey)
-               .WithTimeout(60000)
-               .WithHttpClient(httpClient)
-               .Build();
+                .WithEndpoint(minioModel.Endpoint)
+                .WithSSL(minioModel.UseSSL)
+                .WithSessionToken(minioModel.SessionToken)
+                .WithRegion(minioModel.Region)
+                .WithCredentials(minioModel.AccessKey, minioModel.SecretKey)
+                .WithTimeout(60000)
+                .WithHttpClient(httpClient)
+                .Build();
 
                 List<string> uploadResultUrls = new List<string>();
                 // 显示进度条
-                AnsiConsole.Progress()
-               .AutoRefresh(true) // Turn off auto refresh
-               .AutoClear(false)   // Do not remove the task list when done
-               .HideCompleted(false)   // Hide tasks as they are completed
-               .Columns(new ProgressColumn[]
-               {
-                    new TaskDescriptionColumn()
-                    {
-                        Alignment=Justify.Left
-                    },    // Task description
+                await AnsiConsole.Progress()
+                .AutoRefresh(true) // Turn off auto refresh
+                .AutoClear(false)   // Do not remove the task list when done
+                .HideCompleted(false)   // Hide tasks as they are completed
+                .Columns(
+                [
+                     new TaskDescriptionColumn()
+                     {
+                         Alignment = Justify.Left
+                     },    // Task description
                     new ProgressBarColumn(),// Progress bar
                     new PercentageColumn(),         // Percentage
                     new RemainingTimeColumn(),      // Remaining time
@@ -96,23 +101,23 @@ namespace OneDo.MinioPlugin
                     {
                         Spinner = Spinner.Known.Dots5
                     },// Spinner
-               })
-               .Start(ctx =>
-               {
-                   List<string> needUploadFiles = DownloadFileToTempDir(httpClient, ctx, path, isFromCb);
+                ])
+                .Start(async ctx =>
+                {
+                    List<string> needUploadFiles = DownloadFileToTempDir(httpClient, ctx, paths, isFromCb);
 
-                   // 上传文件
-                   List<string> uploadResults = UploadFileFromPath(ctx, minioClient, needUploadFiles, minioModel);
+                    // 上传文件
+                    List<string> uploadResults = UploadFileFromPath(ctx, minioClient, needUploadFiles, minioModel);
 
-                   // 删除临时目录
-                   var tempMinioDir = Path.Combine(Path.GetTempPath(), "OneDo\\MinioPlugin");
-                   if (Directory.Exists(tempMinioDir))
-                   {
-                       Directory.Delete(tempMinioDir, true);
-                   }
+                    // 删除临时目录
+                    var tempMinioDir = Path.Combine(Path.GetTempPath(), "OneDo\\MinioPlugin");
+                    if (Directory.Exists(tempMinioDir))
+                    {
+                        Directory.Delete(tempMinioDir, true);
+                    }
 
-                   uploadResultUrls.AddRange(uploadResults);
-               });
+                    uploadResultUrls.AddRange(uploadResults);
+                });
 
                 if (uploadResultUrls.Count == 0)
                 {
@@ -123,7 +128,7 @@ namespace OneDo.MinioPlugin
                 // 输出上传结果
                 AnsiConsole.MarkupLine($"[springgreen1]上传成功! 共 {uploadResultUrls.Count} 项[/]");
                 uploadResultUrls.ForEach(x => AnsiConsole.MarkupLine($"[green]{x}[/]"));
-            }, nameArg, pathOption, clipboardOption);
+            }, nameArg, pathsOption, clipboardOption);
 
             #region 添加 list
             var listCommand = new Command("list", "查看所有可用的 MinIO 配置");
@@ -133,7 +138,7 @@ namespace OneDo.MinioPlugin
             {
                 var list = new ListPluginConfs(config, "minios", new List<FieldMapper>()
                 {
-                    new FieldMapper("name","名称"),
+                    new("name","名称"),
                     new FieldMapper("endPoint", "连接端点"),
                     new FieldMapper("bucketName", "桶名称"),
                     new FieldMapper("description", "描述")
@@ -147,12 +152,12 @@ namespace OneDo.MinioPlugin
         /// 如果是剪切板、url 文件，则将文件保存到临时目录中
         /// </summary>
         /// <returns></returns>
-        private List<string> DownloadFileToTempDir(ProgressHttpClient httpClient, ProgressContext ctx, string path, bool clipboard)
+        private List<string> DownloadFileToTempDir(HttpClient httpClient, ProgressContext ctx, List<string> paths, bool clipboard)
         {
             // 获取当前系统类型
-            List<string> fileNames = new List<string>();
+            List<string> fileNames = [];
 
-            if (clipboard && System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (clipboard && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // 剪切板中的文件保存到临时目录中
                 var subTempPath = $"OneDo\\MinioPlugin\\screenshot_{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}.png";
@@ -170,52 +175,52 @@ namespace OneDo.MinioPlugin
             }
 
             // 如果文件是来自网络，则下载到临时目录中
-            if (!string.IsNullOrEmpty(path) && path.ToLower().StartsWith("http"))
+            foreach (var path in paths)
             {
-                // 获取文件名
-                var subTempPath = $"OneDo\\MinioPlugin\\{Path.GetFileName(path)}";
-                var imageFullPath = Path.Combine(Path.GetTempPath(), subTempPath);
-                var dirName = Path.GetDirectoryName(imageFullPath);
-                // 如果目录不存在，则新建
-                if (!Directory.Exists(dirName))
+                if (!string.IsNullOrEmpty(path) && path.ToLower().StartsWith("http"))
                 {
-                    Directory.CreateDirectory(dirName);
-                }
-
-                // 提示正在下载文件
-                var downloadFileTask = ctx.AddTask($"下载 {Path.GetFileName(path)} ");
-                var action = (object? sender, HttpProgressEventArgs e) =>
-                {
-                    downloadFileTask.Value = e.ProgressPercentage;
-                };
-                httpClient.HttpReceiveProgress += action;
-                var response = httpClient.GetAsync(path).GetAwaiter().GetResult();
-                if (response.IsSuccessStatusCode)
-                {
-                    using (var stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                    // 获取文件名
+                    var subTempPath = $"OneDo\\MinioPlugin\\{Path.GetFileName(path)}";
+                    var imageFullPath = Path.Combine(Path.GetTempPath(), subTempPath);
+                    var dirName = Path.GetDirectoryName(imageFullPath);
+                    // 如果目录不存在，则新建
+                    if (!Directory.Exists(dirName))
                     {
-                        using (var fileStream = File.Create(imageFullPath))
-                        {
-                            stream.CopyTo(fileStream);
-                        }
+                        Directory.CreateDirectory(dirName);
                     }
-                    fileNames.Add(imageFullPath);
-                }
-                httpClient.HttpReceiveProgress -= action;
-            }
 
-            // 如果是本地文件，判断是否存在
-            if (!string.IsNullOrEmpty(path) && !path.ToLower().StartsWith("http"))
-            {
-                if (File.Exists(path))
-                {
-                    fileNames.Add(path);
+                    // 提示正在下载文件
+                    var downloadFileTask = ctx.AddTask($"下载 {Path.GetFileName(path)} ");
+                    var response = httpClient.GetAsync(path, HttpCompletionOption.ResponseHeadersRead).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        using (var stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                        {
+                            var httpProgress = new HttpProgress(downloadFileTask);
+                            using var fileStream = File.Create(imageFullPath);
+                            var progressStream = new ProgressStream(fileStream)
+                                .WithProgress(httpProgress);
+                            stream.CopyTo(progressStream);
+                        }
+                        fileNames.Add(imageFullPath);
+                    }
+
+                    continue;
                 }
-                else if (Directory.Exists(path))
+
+                // 如果是本地文件，判断是否存在
+                if (!string.IsNullOrEmpty(path) && !path.ToLower().StartsWith("http"))
                 {
-                    // 如果是文件夹，则添加所有文件
-                    var allFileNames = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-                    fileNames.AddRange(allFileNames);
+                    if (File.Exists(path))
+                    {
+                        fileNames.Add(path);
+                    }
+                    else if (Directory.Exists(path))
+                    {
+                        // 如果是文件夹，则添加所有文件
+                        var allFileNames = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+                        fileNames.AddRange(allFileNames);
+                    }
                 }
             }
 
@@ -228,8 +233,8 @@ namespace OneDo.MinioPlugin
         /// <param name="filePath"></param>
         private List<string> UploadFileFromPath(ProgressContext ctx, IMinioClient client, List<string> filePaths, MinioModel minioModel)
         {
-            List<string> resultUrls = new List<string>();
-            ProgressHttpClient httpClient = client.Config.HttpClient as ProgressHttpClient;
+            List<string> resultUrls = [];
+            var  httpClient = client.Config.HttpClient;
             for (var fileIndex = 0; fileIndex < filePaths.Count; fileIndex++)
             {
                 var fileInfo = new FileInfo(filePaths[fileIndex]);
@@ -258,30 +263,49 @@ namespace OneDo.MinioPlugin
                     }
                 }
 
-                // 开始上传文件
-                var progressTask = ctx.AddTask($"上传 {Path.GetFileName(filePaths[fileIndex])} ");
-
                 var objectFullName = Path.Combine(minioModel.ObjectDir, fileInfo.Name).Replace("\\", "/");
 
+                // 开始上传文件
+                var progressTask = ctx.AddTask($"上传 {Path.GetFileName(filePaths[fileIndex])} ");
+                //// 注册进度回调
+                //void action(object? sender, HttpProgressEventArgs e)
+                //{
+                //    progressTask.Value = e.ProgressPercentage;
+                //}
+                //httpClient.HttpSendProgress = action;
                 // 获取预上传的url
-                var presignedPutArg = new PresignedPutObjectArgs()
+                //var presignedPutArg = new PresignedPutObjectArgs()                    
+                //    .WithBucket(minioModel.BucketName)
+                //    .WithObject(objectFullName)
+                //    .WithExpiry(24 * 60 * 60);
+                //var uploadUrl = client.PresignedPutObjectAsync(presignedPutArg).GetAwaiter().GetResult();
+                //var fs = fileInfo.OpenRead();
+                //var sc = new StreamContent(fs);                
+                //HttpResponseMessage resMessage = httpClient.PutAsync(uploadUrl, sc).GetAwaiter().GetResult();
+                //fs.Close();
+
+                var minioProgress = new MinioProgress(progressTask);
+                var fileStrem = fileInfo.OpenRead();
+                var putObjectArg = new PutObjectArgs()
                     .WithBucket(minioModel.BucketName)
                     .WithObject(objectFullName)
-                    .WithExpiry(24 * 60 * 60);
-                var uploadUrl = client.PresignedPutObjectAsync(presignedPutArg).GetAwaiter().GetResult();
-                var fs = fileInfo.OpenRead();
-                var sc = new StreamContent(fs);
-                var action = (object? sender, HttpProgressEventArgs e) =>
+                    .WithContentType(MimeTypes.GetMimeType(fileInfo.FullName))
+                    .WithStreamData(fileStrem)
+                    .WithProgress(minioProgress)
+                    .WithObjectSize(fileInfo.Length);
+
+                try
                 {
-                    progressTask.Value = e.ProgressPercentage;
-                };
-                httpClient.HttpSendProgress += action;
-                HttpResponseMessage resMessage = httpClient.PutAsync(uploadUrl, sc).GetAwaiter().GetResult();
-                fs.Close();
-                if (!resMessage.IsSuccessStatusCode)
+                    client.PutObjectAsync(putObjectArg).GetAwaiter().GetResult();
+                }
+                catch (Exception e)
                 {
-                    AnsiConsole.MarkupLine($"[red]{fileInfo.FullName} 上传失败 : {resMessage.ReasonPhrase}[/]");
+                    AnsiConsole.MarkupLine($"[red]{fileInfo.FullName} 上传失败 : {e.Message}[/]");
                     continue;
+                }
+                finally
+                {
+                    fileStrem.Close();
                 }
 
                 // 添加到成果中
@@ -298,5 +322,7 @@ namespace OneDo.MinioPlugin
                 return x;
             });
         }
+
+
     }
 }

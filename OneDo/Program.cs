@@ -100,8 +100,7 @@ foreach (var dllName in dllNames)
 
     foreach (var pluginType in pluginTypes)
     {
-        var plugin = Activator.CreateInstance(pluginType) as IPlugin;
-        if (plugin == null)
+        if (Activator.CreateInstance(pluginType) is not IPlugin plugin)
         {
             AnsiConsole.WriteLine($"[red]插件 {dllName} 未实现 IPlugin 接口[/]");
             continue;
